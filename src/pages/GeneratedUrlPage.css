@@ -1,0 +1,282 @@
+/* Base layout and container */
+:root{
+  --bg:#ffffff;
+  --muted:#6b7280;
+  --primary:#0f62fe;
+  --card:#f8fafc;
+  --border:#e6eefc;
+  --accent:#0b5fff;
+  --radius:10px;
+}
+
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; background:var(--bg); color:#0f172a;}
+
+/* page wrapper */
+.generated-url-page .container{
+  max-width:1200px;
+  margin:0 auto;
+  padding:18px;
+}
+
+/* Header (NOT sticky anymore) */
+.page-header{
+  border-bottom:1px solid rgba(15,23,42,0.06);
+  background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+  /* removed position: sticky so header is part of flow */
+  z-index:1;
+}
+
+.header-inner{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  justify-content:space-between;
+  padding:12px 0;
+}
+
+/* back */
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none;
+  color:var(--muted);
+  font-weight:600;
+  padding:8px 10px;
+  border-radius:8px;
+}
+.back-btn:hover{background:rgba(15,23,42,0.03); color:#111827;}
+
+/* title */
+.title-section{
+  flex:1;
+  padding-left:12px;
+}
+.page-title{
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:20px;
+  color:#0b1220;
+}
+.title-icon{color:var(--accent)}
+.page-subtitle{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* actions */
+/* NEW: make the New Short URL button smaller (compact) */
+.action-section{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.new-url-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:var(--primary);
+  color:white;
+  padding:8px 10px;         /* reduced padding */
+  border-radius:8px;        /* slightly smaller radius */
+  border:0;
+  cursor:pointer;
+  font-weight:700;
+  font-size:13px;           /* smaller font */
+  box-shadow: 0 6px 14px rgba(11,95,255,0.10);
+  line-height:1;
+}
+.new-url-btn:hover{transform:translateY(-1px);}
+
+/* ensure icon is compact inside the button */
+.new-url-btn svg{ width:14px; height:14px; display:inline-block; vertical-align:middle; }
+
+/* Tabs header */
+.tabs-header{
+  display:flex;
+  gap:8px;
+  margin:20px 0 12px;
+  flex-wrap:wrap;
+}
+.tab-btn{
+  border:1px solid rgba(15,23,42,0.06);
+  background:white;
+  padding:8px 12px;
+  border-radius:10px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+  cursor:pointer;
+}
+.tab-btn .tab-text{display:inline-block}
+.tab-btn.active{
+  background:linear-gradient(90deg,var(--accent),#2b6af6);
+  color:white;
+  border-color:transparent;
+  box-shadow:0 6px 20px rgba(11,95,255,0.12);
+}
+
+/* Tabs content */
+.tabs-content{
+  min-height:200px;
+}
+
+/* Generic tab-panel */
+.tab-panel{
+  background:#fff;
+  padding:18px;
+  border-radius:10px;
+  border:1px solid rgba(15,23,42,0.04);
+}
+
+/* Make tables look modern on desktop */
+.generated-urls-wrapper table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+  background:#fff;
+  border-radius:8px;
+  overflow:hidden;
+}
+.generated-urls-wrapper thead th{
+  text-align:left;
+  padding:12px 16px;
+  font-size:13px;
+  color:var(--muted);
+  background:linear-gradient(180deg,#fbfdff,#f7fbff);
+  border-bottom:1px solid var(--border);
+}
+.generated-urls-wrapper tbody td{
+  padding:14px 16px;
+  border-bottom:1px solid rgba(15,23,42,0.04);
+  vertical-align:middle;
+}
+.generated-urls-wrapper tbody tr:last-child td{
+  border-bottom:0;
+}
+.generated-urls-wrapper tbody tr:hover{
+  background:linear-gradient(90deg, rgba(11,95,255,0.02), transparent);
+}
+
+/* Action button styles (these will style typical action buttons that might be in Actions column) */
+.generated-urls-wrapper .action-btn{
+  padding:6px 10px;
+  border-radius:8px;
+  border:1px solid rgba(15,23,42,0.06);
+  background:white;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* Ensure icons inside action buttons display — force size and use currentColor for visibility */
+.generated-urls-wrapper .action-btn svg,
+.generated-urls-wrapper td svg,
+.generated-urls-wrapper button svg {
+  width:16px;
+  height:16px;
+  display:inline-block;
+  vertical-align:middle;
+  /* let SVG color inherit from text color; many react-icons already support currentColor */
+  color: inherit;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* Improve accessibility: icons without text should have aria-hidden; if they are hidden visually ensure proper aria-label in component */
+
+/* ===== Responsive: turn each row into a stacked card on small screens =====
+   This CSS hides the table head and uses nth-child on td to show a label before each value,
+   effectively turning every row into a vertical list ("Short URL", "Destination", etc.)
+   Keep the order: Short URL | Destination | Clicks | Created | Status | Actions
+*/
+@media (max-width: 880px) {
+  .header-inner{flex-direction:column; align-items:flex-start; gap:10px;}
+  .action-section{width:100%; display:flex; justify-content:flex-end}
+
+  .tabs-header{gap:6px}
+  .tab-btn{padding:8px 10px; font-size:14px}
+
+  /* Make the table block-level */
+  .generated-urls-wrapper table,
+  .generated-urls-wrapper thead,
+  .generated-urls-wrapper tbody,
+  .generated-urls-wrapper th,
+  .generated-urls-wrapper td,
+  .generated-urls-wrapper tr {
+    display:block;
+  }
+
+  /* hide the header */
+  .generated-urls-wrapper thead { display:none; }
+
+  .generated-urls-wrapper tbody tr {
+    margin-bottom:14px;
+    padding:12px;
+    border-radius:12px;
+    background:linear-gradient(180deg,#ffffff,#fbfdff);
+    border:1px solid var(--border);
+    box-shadow: 0 6px 18px rgba(9,30,66,0.04);
+  }
+
+  .generated-urls-wrapper tbody td {
+    display:flex;
+    justify-content:space-between;
+    padding:10px 12px;
+    border-bottom:1px dashed rgba(15,23,42,0.04);
+    align-items:center;
+    font-size:14px;
+  }
+  .generated-urls-wrapper tbody td:last-child{
+    border-bottom:0;
+    padding-bottom:6px;
+  }
+
+  /* labels added before the values using :before on td nth-child */
+  .generated-urls-wrapper tbody td:nth-child(1):before { content: "Short URL"; font-weight:700; color:var(--muted); margin-right:10px; }
+  .generated-urls-wrapper tbody td:nth-child(2):before { content: "Destination"; font-weight:700; color:var(--muted); margin-right:10px; }
+  .generated-urls-wrapper tbody td:nth-child(3):before { content: "Clicks"; font-weight:700; color:var(--muted); margin-right:10px; }
+  .generated-urls-wrapper tbody td:nth-child(4):before { content: "Created"; font-weight:700; color:var(--muted); margin-right:10px; }
+  .generated-urls-wrapper tbody td:nth-child(5):before { content: "Status"; font-weight:700; color:var(--muted); margin-right:10px; }
+  .generated-urls-wrapper tbody td:nth-child(6):before { content: "Actions"; font-weight:700; color:var(--muted); margin-right:10px; }
+
+  /* Value side (right column) */
+  .generated-urls-wrapper tbody td span.value,
+  .generated-urls-wrapper tbody td .value {
+    margin-left:auto;
+    text-align:right;
+    font-weight:600;
+    color:#0b1220;
+  }
+
+  /* If Actions column contains buttons, wrap them nicely */
+  .generated-urls-wrapper tbody td .actions {
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+    align-items:center;
+  }
+
+  /* Make the New button full width only on very narrow screens if desired,
+     but since you asked for a small button, keep it compact even on mobile */
+  .new-url-btn{width:auto; padding:8px 10px;}
+  .back-btn {padding:8px;}
+}
+
+/* Slightly larger tablet tweaks */
+@media (min-width: 881px) and (max-width: 1100px){
+  .container{padding:16px}
+  .page-title{font-size:18px}
+}
+
+/* Desktop polish */
+@media (min-width: 1101px){
+  .shortener-section{padding:14px 0 18px}
+}
