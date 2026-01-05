@@ -1,4 +1,3 @@
-// src/pages/AnalyticsPage.js
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import AnalyticsChart from '../components/AnalyticsChart';
@@ -82,8 +81,11 @@ const AnalyticsPage = () => {
     return date.toISOString().split('T')[0];
   };
 
-  // Normalization helper - takes raw backend analytics and returns chart-friendly shapes
+  // Enhanced Normalization helper - with proper handling for all time ranges
   const normalizeAnalytics = useCallback((raw = {}) => {
+    console.log('Normalizing analytics data:', { raw });
+    
+    // Clone the raw data
     const normalized = { ...raw };
 
     // ---------- Clicks over time ----------
@@ -95,8 +97,14 @@ const AnalyticsPage = () => {
         let label = item.label ?? item.date ?? item._id ?? item.x;
         let value = (item.value ?? item.count ?? item.y ?? item.total) || 0;
 
-        if (typeof label === 'string' && /^\d{4}-\d{2}-\d{2}/.test(label)) {
-          try { label = new Date(label).toLocaleDateString(); } catch {}
+        if (typeof label === 'string') {
+          // Handle different date formats
+          if (/^\d{4}-\d{2}$/.test(label)) { // YYYY-MM format (monthly)
+            const [year, month] = label.split('-');
+            label = new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+          } else if (/^\d{4}-\d{2}-\d{2}/.test(label)) { // YYYY-MM-DD format
+            try { label = new Date(label).toLocaleDateString(); } catch {}
+          }
         } else if (label instanceof Date) {
           label = label.toLocaleDateString();
         }
@@ -125,12 +133,33 @@ const AnalyticsPage = () => {
     normalized.clicksOverTime = { labels, values };
 
     // ---------- Top countries ----------
-    const countriesRaw = raw.topCountries ?? raw.countries ?? raw.countryData ?? [];
-    const countries = [];
-    const visits = [];
+    let countriesData = [];
+    let countries = [];
+    let visits = [];
     
-    if (Array.isArray(countriesRaw) && countriesRaw.length > 0) {
-      countriesRaw.forEach(c => {
+    // Handle different backend response structures
+    if (raw.topCountries && raw.topCountries.rawData) {
+      // New structure from analytics controller
+      countriesData = raw.topCountries.rawData;
+    } else if (raw.topCountries && Array.isArray(raw.topCountries)) {
+      // Array structure
+      countriesData = raw.topCountries;
+    } else if (raw.countries && Array.isArray(raw.countries)) {
+      // Alternative array structure
+      countriesData = raw.countries;
+    } else if (typeof raw.topCountries === 'object' && raw.topCountries !== null) {
+      // Object structure with countries/visits arrays
+      if (Array.isArray(raw.topCountries.countries) && Array.isArray(raw.topCountries.visits)) {
+        countriesData = raw.topCountries.countries.map((country, index) => ({
+          country,
+          visits: raw.topCountries.visits[index] || 0
+        }));
+      }
+    }
+    
+    // Process countries data
+    if (Array.isArray(countriesData) && countriesData.length > 0) {
+      countriesData.forEach(c => {
         if (!c) return;
         const name = c.country ?? c._id ?? c.name ?? c.countryName ?? c.country_code ?? 'Unknown';
         const cnt = Number(c.clicks ?? c.count ?? c.visits ?? c.value ?? 0);
@@ -139,8 +168,8 @@ const AnalyticsPage = () => {
           visits.push(cnt);
         }
       });
-    } else if (typeof countriesRaw === 'object' && Object.keys(countriesRaw).length > 0) {
-      Object.entries(countriesRaw).forEach(([k, v]) => {
+    } else if (typeof countriesData === 'object' && Object.keys(countriesData).length > 0) {
+      Object.entries(countriesData).forEach(([k, v]) => {
         if (k && v > 0) {
           countries.push(k);
           visits.push(Number(v || 0));
@@ -150,7 +179,8 @@ const AnalyticsPage = () => {
     
     // Sort by visits
     const combined = countries.map((c, i) => ({ country: c, visits: visits[i] }))
-      .sort((a, b) => b.visits - a.visits);
+      .sort((a, b) => b.visits - a.visits)
+      .slice(0, 10); // Limit to top 10
     
     normalized.topCountries = {
       countries: combined.map(c => c.country),
@@ -183,21 +213,24 @@ const AnalyticsPage = () => {
     // ---------- Engagement / bounce vs engaged ----------
     let bounced = 0;
     let engaged = 0;
+    let bounceRate = 0;
     
     if (raw.engagement && typeof raw.engagement === 'object') {
       bounced = Number(raw.engagement.bounced || raw.engagement.bounceCount || 0);
       engaged = Number(raw.engagement.engaged || raw.engagement.engagedCount || 0);
+      bounceRate = Number(raw.engagement.bounceRate || 0);
     } else if (raw.bounced !== undefined || raw.engaged !== undefined) {
       bounced = Number(raw.bounced || 0);
       engaged = Number(raw.engaged || 0);
+      bounceRate = raw.totalClicks ? (bounced / raw.totalClicks * 100) : 0;
     } else if (raw.bounceRate !== undefined && (raw.totalClicks !== undefined || raw.totalClicks === 0)) {
       const total = Number(raw.totalClicks || 0);
-      const bounceRate = Math.min(100, Math.max(0, Number(raw.bounceRate || 0))) / 100;
-      bounced = Math.round(total * bounceRate);
+      bounceRate = Math.min(100, Math.max(0, Number(raw.bounceRate || 0)));
+      bounced = Math.round(total * (bounceRate / 100));
       engaged = Math.max(0, total - bounced);
     }
     
-    normalized.engagement = { bounced, engaged, bounceRate: raw.bounceRate };
+    normalized.engagement = { bounced, engaged, bounceRate };
 
     // ---------- Returning visitors ----------
     if (raw.returningVisitors !== undefined) {
@@ -216,17 +249,18 @@ const AnalyticsPage = () => {
     normalized.totalClicks = Number(raw.totalClicks || raw.total_clicks || 0);
     normalized.uniqueClicks = Number(raw.uniqueClicks || raw.unique_clicks || raw.uniqueVisitors || 0);
     
-    // Detailed metrics
+    // Detailed metrics - Use actual backend data, not static defaults
     normalized.detailedMetrics = {
-      avgTimeToClick: raw.avgTimeToClick || raw.averageTimeToClick || '2.5s',
-      avgScrollDepth: raw.avgScrollDepth || raw.averageScrollDepth || '65%',
-      peakHour: raw.peakHour || raw.peakHourOfDay || '2 PM',
+      avgTimeToClick: raw.avgTimeToClick || raw.averageTimeToClick || 'N/A',
+      avgScrollDepth: raw.avgScrollDepth || raw.averageScrollDepth || 'N/A',
+      peakHour: raw.peakHour || raw.peakHourOfDay || 'N/A',
       topReferrer: raw.topReferrer || raw.topReferrerDomain || 'Direct',
-      avgSessionDuration: raw.avgSessionDuration || '00:45',
+      avgSessionDuration: raw.avgSessionDuration || raw.avgTimeOnPage || 'N/A',
       conversionRate: raw.conversionRate || '0%',
-      pagesPerSession: raw.pagesPerSession || 1.2
+      pagesPerSession: raw.pagesPerSession || 1.0
     };
 
+    console.log('Normalized analytics data:', normalized);
     return normalized;
   }, []);
 
@@ -246,6 +280,8 @@ const AnalyticsPage = () => {
         params.range = 'custom';
       }
 
+      console.log('Fetching analytics for URL:', { id, params });
+
       const CancelToken = api.CancelToken || null;
       let res;
       if (CancelToken) {
@@ -260,12 +296,18 @@ const AnalyticsPage = () => {
       }
 
       const body = res.data;
+      console.log('Analytics response:', body);
+      
       const rawAnalytics = body?.analytics ?? body?.data ?? body;
       const normalized = normalizeAnalytics(rawAnalytics);
       setAnalyticsData(normalized);
       
-      // Extract detailed metrics
-      if (rawAnalytics.detailedMetrics) {
+      // Extract detailed metrics from analytics response
+      if (body?.analytics?.detailedMetrics) {
+        setDetailedMetrics(body.analytics.detailedMetrics);
+      } else if (body?.detailedMetrics) {
+        setDetailedMetrics(body.detailedMetrics);
+      } else if (rawAnalytics?.detailedMetrics) {
         setDetailedMetrics(rawAnalytics.detailedMetrics);
       }
 
@@ -310,14 +352,29 @@ const AnalyticsPage = () => {
         params.range = 'custom';
       }
 
+      console.log('Fetching overall analytics with params:', params);
+
       const res = await api.get(`/urls/dashboard-stats`, { params });
       const body = res.data;
+      console.log('Overall analytics response:', body);
       
-      const normalized = normalizeAnalytics(body?.analytics ?? body?.data ?? body);
+      // For dashboard-stats, the response structure might be different
+      let normalized;
+      if (body?.analytics) {
+        normalized = normalizeAnalytics(body.analytics);
+      } else if (body?.data) {
+        normalized = normalizeAnalytics(body.data);
+      } else {
+        normalized = normalizeAnalytics(body);
+      }
+      
       setAnalyticsData(normalized);
       setSelectedUrl(null);
       
-      if (body.detailedMetrics) {
+      // Extract detailed metrics
+      if (body?.analytics?.detailedMetrics) {
+        setDetailedMetrics(body.analytics.detailedMetrics);
+      } else if (body?.detailedMetrics) {
         setDetailedMetrics(body.detailedMetrics);
       }
       
@@ -443,6 +500,23 @@ const AnalyticsPage = () => {
         const threeMonthsAgo = new Date();
         threeMonthsAgo.setDate(threeMonthsAgo.getDate() - 90);
         setStartDate(threeMonthsAgo);
+        setEndDate(today);
+        break;
+      case '180days':
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setDate(sixMonthsAgo.getDate() - 180);
+        setStartDate(sixMonthsAgo);
+        setEndDate(today);
+        break;
+      case '365days':
+        const yearAgo = new Date();
+        yearAgo.setDate(yearAgo.getDate() - 365);
+        setStartDate(yearAgo);
+        setEndDate(today);
+        break;
+      case 'all':
+        // For all time, set start date to a very old date
+        setStartDate(new Date(0));
         setEndDate(today);
         break;
       default:
@@ -640,17 +714,21 @@ const AnalyticsPage = () => {
                   <p>Unique Visitors</p>
                 </div>
               </div>
-              <div className="stat-card">
+
+              {/* Hidden but still present in DOM: Returning Visitors */}
+              <div className="stat-card hidden-stat">
                 <div className="stat-icon"><FaUserClock /></div>
                 <div className="stat-info">
                   <h3>{analyticsData?.returningVisitors ?? 0}</h3>
                   <p>Returning Visitors</p>
                 </div>
               </div>
-              <div className="stat-card">
+
+              {/* Hidden but still present in DOM: Conversion Rate */}
+              <div className="stat-card hidden-stat">
                 <div className="stat-icon"><FaChartBar /></div>
                 <div className="stat-info">
-                  <h3>{analyticsData?.detailedMetrics?.conversionRate || '0%'}</h3>
+                  <h3>{analyticsData?.detailedMetrics?.conversionRate || detailedMetrics.conversionRate || '0%'}</h3>
                   <p>Conversion Rate</p>
                 </div>
               </div>
@@ -659,15 +737,7 @@ const AnalyticsPage = () => {
 
           <section className="charts-section">
             <div className="charts-grid">
-              <div className="chart-card">
-                <AnalyticsChart 
-                  data={analyticsData?.clicksOverTime || { labels: [], values: [] }} 
-                  type="clicks" 
-                  title="Clicks Over Time" 
-                  timeRange={getDisplayTimeRange()}
-                />
-              </div>
-
+              {/* reordered so Clicks Over Time comes after Device Distribution */}
               <div className="chart-card">
                 <AnalyticsChart 
                   data={analyticsData?.topCountries?.rawData || analyticsData?.topCountries || { countries: [], visits: [] }} 
@@ -682,6 +752,15 @@ const AnalyticsPage = () => {
                   data={analyticsData?.deviceDistribution || { devices: [0, 0, 0] }} 
                   type="devices" 
                   title="Device Distribution" 
+                  timeRange={getDisplayTimeRange()}
+                />
+              </div>
+
+              <div className="chart-card">
+                <AnalyticsChart 
+                  data={analyticsData?.clicksOverTime || { labels: [], values: [] }} 
+                  type="clicks" 
+                  title="Clicks Over Time" 
                   timeRange={getDisplayTimeRange()}
                 />
               </div>
@@ -703,19 +782,19 @@ const AnalyticsPage = () => {
               <div className="metric-card">
                 <div className="metric-icon"><FaClock /></div>
                 <h3>Avg. Time to Click</h3>
-                <p className="metric-value">{analyticsData?.detailedMetrics?.avgTimeToClick || detailedMetrics.avgTimeToClick || '2.5s'}</p>
+                <p className="metric-value">{analyticsData?.detailedMetrics?.avgTimeToClick || detailedMetrics.avgTimeToClick || 'N/A'}</p>
                 <p className="metric-label">Average time from view to click</p>
               </div>
               <div className="metric-card">
                 <div className="metric-icon"><FaScroll /></div>
                 <h3>Avg. Scroll Depth</h3>
-                <p className="metric-value">{analyticsData?.detailedMetrics?.avgScrollDepth || detailedMetrics.avgScrollDepth || '65%'}</p>
+                <p className="metric-value">{analyticsData?.detailedMetrics?.avgScrollDepth || detailedMetrics.avgScrollDepth || 'N/A'}</p>
                 <p className="metric-label">Average scroll depth percentage</p>
               </div>
               <div className="metric-card">
                 <div className="metric-icon"><FaHourglassHalf /></div>
                 <h3>Session Duration</h3>
-                <p className="metric-value">{analyticsData?.detailedMetrics?.avgSessionDuration || detailedMetrics.avgSessionDuration || '00:45'}</p>
+                <p className="metric-value">{analyticsData?.detailedMetrics?.avgSessionDuration || detailedMetrics.avgSessionDuration || 'N/A'}</p>
                 <p className="metric-label">Average session duration</p>
               </div>
               <div className="metric-card">
@@ -727,13 +806,13 @@ const AnalyticsPage = () => {
               <div className="metric-card">
                 <div className="metric-icon"><FaGlobe /></div>
                 <h3>Peak Hour</h3>
-                <p className="metric-value">{analyticsData?.detailedMetrics?.peakHour || detailedMetrics.peakHour || '2 PM'}</p>
+                <p className="metric-value">{analyticsData?.detailedMetrics?.peakHour || detailedMetrics.peakHour || 'N/A'}</p>
                 <p className="metric-label">Hour with most clicks</p>
               </div>
               <div className="metric-card">
                 <div className="metric-icon"><FaChartBar /></div>
                 <h3>Pages/Session</h3>
-                <p className="metric-value">{analyticsData?.detailedMetrics?.pagesPerSession || detailedMetrics.pagesPerSession || 1.2}</p>
+                <p className="metric-value">{analyticsData?.detailedMetrics?.pagesPerSession || detailedMetrics.pagesPerSession || 'N/A'}</p>
                 <p className="metric-label">Average pages per session</p>
               </div>
             </div>
@@ -776,7 +855,7 @@ const AnalyticsPage = () => {
                           </td>
                           <td>{country.visits}</td>
                           <td>{percentage}%</td>
-                          <td>{Math.round(country.visits * 0.2)}</td>
+                          <td>{Math.round(country.visits * (analyticsData.returningVisitors / analyticsData.totalClicks || 0.2))}</td>
                         </tr>
                       );
                     })}

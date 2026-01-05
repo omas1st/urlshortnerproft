@@ -295,6 +295,12 @@
   font-weight: 500;
 }
 
+/* Hidden stat helper - keeps the DOM node but hides it visually.
+   Remove the class 'hidden-stat' from the stat card to show again. */
+.hidden-stat {
+  display: none !important;
+}
+
 /* Charts Section */
 .charts-section {
   margin-bottom: 3rem;
