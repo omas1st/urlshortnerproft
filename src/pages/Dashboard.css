@@ -6,40 +6,39 @@
   padding-bottom: 2rem;
 }
 
-/* Dashboard Header (now in-flow/top section, not fixed) */
+/* Dashboard Header (in-flow/top section) */
 .dashboard-header {
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   color: white;
   padding: 1.5rem 0;
   margin-bottom: 1.5rem;
-  position: relative; /* <-- changed from fixed to relative so header is first section in page flow */
+  position: relative;
   z-index: 100;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   transition: transform 0.3s ease-in-out, opacity 0.25s ease;
   transform: translateY(0);
 }
 
-/* header-visible / header-hidden classes left intact; because header is in-flow they will not overlap content */
+/* header-visible / header-hidden classes */
 .dashboard-header.header-visible {
   transform: translateY(0);
   opacity: 1;
 }
 
 .dashboard-header.header-hidden {
-  transform: translateY(-10%); /* small upward nudge when hidden; no absolute positioning avoids content being covered */
+  transform: translateY(-6%); /* small upward nudge when hidden */
   opacity: 0.95;
 }
 
-/* dashboard-main no longer needs large top padding to account for fixed header */
+/* dashboard-main */
 .dashboard-main {
-  padding-top: 1rem; /* small breathing room */
+  padding-top: 1rem;
 }
 
-/* Inner wrapper which we will scale on small screens */
+/* Inner wrapper */
 .dashboard-inner {
-  /* default: no scaling */
   transform: none;
-  transform-origin: top left;
+  transform-origin: top center;
   transition: transform 160ms ease;
 }
 
@@ -54,26 +53,26 @@
 
 .welcome-section {
   flex: 1;
-  min-width: 200px;
+  min-width: 220px;
 }
 
 .welcome-section h1 {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
 
 .welcome-message {
-  font-size: 0.9rem;
-  opacity: 0.9;
+  font-size: 0.95rem;
+  opacity: 0.95;
   margin: 0;
 }
 
 .username {
-  font-weight: 600;
+  font-weight: 700;
   color: #d6bcfa;
 }
 
@@ -93,9 +92,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .logout-btn:hover {
@@ -103,17 +102,13 @@
   transform: translateY(-2px);
 }
 
-.logout-text {
-  display: inline;
-}
-
 /* URL Shortener Section */
 .url-shortener-section {
   background: white;
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1.75rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
 }
 
@@ -125,7 +120,7 @@
 .quick-actions-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
+  gap: 0.9rem;
   margin-top: 1rem;
 }
 
@@ -133,29 +128,29 @@
   background: white;
   border-radius: 12px;
   padding: 1rem 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
   text-decoration: none;
   color: #4a5568;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   border: 1px solid #e2e8f0;
   cursor: pointer;
-  min-height: 90px;
+  min-height: 96px;
 }
 
 .quick-action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
   border-color: #4f46e5;
   color: #4f46e5;
 }
 
 .quick-action-icon {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 10px;
   display: flex;
@@ -163,12 +158,12 @@
   justify-content: center;
   margin-bottom: 0.5rem;
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
 }
 
 .quick-action-text {
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 0.9rem;
+  font-weight: 600;
   text-align: center;
   line-height: 1.2;
 }
@@ -181,7 +176,7 @@
 .stats-compact-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+  gap: 0.9rem;
   margin-top: 1rem;
 }
 
@@ -189,10 +184,10 @@
   background: white;
   border-radius: 12px;
   padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.9rem;
   border: 1px solid #e2e8f0;
 }
 
@@ -204,7 +199,7 @@
 .active-urls { background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); }
 
 .compact-stat-content h3 { font-size: 1.3rem; margin-bottom: 0.1rem; color: #2d3748; font-weight:700; }
-.compact-stat-content p { color:#718096; font-size:0.8rem; font-weight:500; margin:0; }
+.compact-stat-content p { color:#718096; font-size:0.85rem; font-weight:600; margin:0; }
 
 /* Recent URLs Section */
 .recent-urls-section {
@@ -212,7 +207,7 @@
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
 }
 
@@ -225,7 +220,7 @@
 
 .section-title {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #2d3748;
   margin: 0;
 }
@@ -233,11 +228,11 @@
 .view-all-link {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   color: #4299e1;
   text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   transition: color 0.2s;
 }
 
@@ -247,123 +242,119 @@
 .empty-state { text-align:center; padding:3rem 1rem; color:#a0aec0; }
 .empty-state-icon { width:60px; height:60px; background:#f7fafc; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; font-size:1.5rem; color:#cbd5e0;}
 .empty-state p { font-size:1rem; margin-bottom:0.5rem; color:#718096;}
-.empty-state-subtext { font-size:0.9rem; color:#a0aec0; }
+.empty-state-subtext { font-size:0.95rem; color:#a0aec0; }
 
 /* Recent URLs List cards & elements */
 .recent-urls-list { display:flex; flex-direction:column; gap:1rem; }
-.recent-url-card { background:#f8fafc; border-radius:12px; padding:1rem; border:1px solid #e2e8f0; transition:all .2s; }
-.recent-url-card:hover { border-color:#cbd5e0; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
+.recent-url-card { background:#f8fafc; border-radius:12px; padding:1rem; border:1px solid #e2e8f0; transition:all .18s; }
+.recent-url-card:hover { border-color:#cbd5e0; box-shadow:0 4px 14px rgba(0,0,0,0.06); }
 
 .recent-url-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem; gap:0.75rem; }
 .recent-url-short { flex:1; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; }
-.short-url-display { color:#4299e1; text-decoration:none; font-weight:500; font-size:0.9rem; display:flex; align-items:center; gap:4px; word-break:break-all; }
+.short-url-display { color:#4299e1; text-decoration:none; font-weight:600; font-size:0.95rem; display:flex; align-items:center; gap:6px; word-break:break-all; }
 .short-url-display:hover { color:#3182ce; text-decoration:underline; }
-.external-link-icon { font-size:0.8rem; opacity:0.7; }
+.external-link-icon { font-size:0.85rem; opacity:0.8; }
 
-.copy-btn { background:#edf2f7; border:none; border-radius:6px; padding:0.4rem 0.6rem; color:#4a5568; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .12s; font-size:0.9rem; }
+.copy-btn { background:#edf2f7; border:none; border-radius:6px; padding:0.45rem 0.64rem; color:#4a5568; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .12s; font-size:0.95rem; }
 .copy-btn:hover { background:#e2e8f0; color:#2d3748; }
 
-.recent-url-clicks { background:white; border-radius:8px; padding:0.5rem 0.75rem; border:1px solid #e2e8f0; min-width:70px; text-align:center; }
-.clicks-count { display:block; font-size:1.1rem; font-weight:700; color:#2d3748; line-height:1; }
-.clicks-label { font-size:0.75rem; color:#718096; font-weight:500; }
+.recent-url-clicks { background:white; border-radius:8px; padding:0.5rem 0.75rem; border:1px solid #e2e8f0; min-width:82px; text-align:center; }
+.clicks-count { display:block; font-size:1.15rem; font-weight:800; color:#2d3748; line-height:1; }
+.clicks-label { font-size:0.78rem; color:#718096; font-weight:600; }
 
 .recent-url-destination { background:white; border-radius:8px; padding:0.75rem; margin-bottom:0.75rem; border:1px solid #e2e8f0; }
-.destination-label { display:block; font-size:0.75rem; color:#718096; margin-bottom:0.25rem; font-weight:500; }
-.destination-url { color:#4a5568; text-decoration:none; font-size:0.85rem; word-break:break-all; display:block; }
+.destination-label { display:block; font-size:0.78rem; color:#718096; margin-bottom:0.25rem; font-weight:600; }
+.destination-url { color:#4a5568; text-decoration:none; font-size:0.9rem; word-break:break-all; display:block; }
 .destination-url:hover { color:#2d3748; text-decoration:underline; }
 
 .recent-url-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; }
-.recent-url-date { display:flex; align-items:center; gap:0.5rem; color:#718096; font-size:0.8rem; }
-.recent-url-date svg { font-size:0.8rem; }
+.recent-url-date { display:flex; align-items:center; gap:0.5rem; color:#718096; font-size:0.85rem; }
+.recent-url-date svg { font-size:0.85rem; }
 
 .recent-url-actions { display:flex; gap:0.5rem; }
-.analytics-btn { background:#4299e1; color:white; border:none; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.8rem; font-weight:500; text-decoration:none; display:flex; align-items:center; gap:4px; cursor:pointer; transition:background .12s; }
+.analytics-btn { background:#4299e1; color:white; border:none; border-radius:6px; padding:0.46rem 0.9rem; font-size:0.85rem; font-weight:600; text-decoration:none; display:flex; align-items:center; gap:6px; cursor:pointer; transition:background .12s; }
 .analytics-btn:hover { background:#3182ce; }
 
 /* Error Banner */
 .error-banner { background:#fff5f5; border:1px solid #fc8181; border-radius:8px; padding:1rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem; }
-.error-banner p { color:#c53030; margin:0; font-weight:500; font-size:0.9rem; flex:1; }
-.retry-btn { background:#4299e1; color:white; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-weight:500; font-size:0.9rem; white-space:nowrap; }
+.error-banner p { color:#c53030; margin:0; font-weight:600; font-size:0.95rem; flex:1; }
+.retry-btn { background:#4299e1; color:white; border:none; padding:0.55rem 1rem; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.95rem; white-space:nowrap; }
 .retry-btn:hover { background:#3182ce; }
 
 /* Loading */
 .loading { text-align:center; padding:4rem 2rem; color:#718096; font-size:1rem; }
 
 /* --------------------------
-   Mobile scaling: make dashboard visually ~50% on small devices
-   --------------------------
-   This applies only to the dashboard-inner wrapper so the rest of the app is unaffected.
-   Adjust breakpoint if needed.
-*/
+   Mobile scaling: gentler 80% zoom for very small devices
+   -------------------------- */
 @media (max-width: 420px) {
-  /* Make the whole dashboard content appear smaller (approx 50% zoom) */
+  /* Scale to 80% so content looks naturally smaller (not tiny). Compensate width to keep layout usable. */
   .dashboard-inner {
-    transform: scale(0.5);
-    transform-origin: top left;
-    width: 200%; /* compensates for the scale so layout still uses full width */
+    transform: scale(0.8);          /* 80% zoom as requested */
+    transform-origin: top center;
+    width: 125%;                    /* 1 / 0.8 = 1.25 to compensate */
     touch-action: manipulation;
   }
 
-  /* Slightly reduce header padding for tight screens */
+  /* Reduce header padding slightly */
   .dashboard-header {
-    padding: 0.9rem 0;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-main { padding-top: 0.75rem; }
+
+  /* Tighter paddings on sections to fit the scaled layout */
+  .url-shortener-section, .recent-urls-section, .quick-actions-section, .stats-overview-section {
+    padding: 0.9rem;
     margin-bottom: 0.9rem;
   }
 
-  .dashboard-main { padding-top: 0.5rem; }
-
-  /* Optional: reduce some paddings so scaled elements don't look cramped */
-  .url-shortener-section, .recent-urls-section, .quick-actions-section, .stats-overview-section {
-    padding: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  /* Smaller quick action grid */
+  /* Two-column quick action grid for small phones */
   .quick-actions-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
 
-  .quick-action-btn { min-height: 64px; padding: 0.6rem 0.4rem; }
-  .quick-action-icon { width: 34px; height: 34px; font-size: 0.95rem; }
-  .quick-action-text { font-size: 0.68rem; }
+  .quick-action-btn { min-height: 72px; padding: 0.7rem 0.4rem; }
+  .quick-action-icon { width: 36px; height: 36px; font-size: 1rem; }
+  .quick-action-text { font-size: 0.78rem; }
 
   .section-title { font-size: 1rem; }
   .compact-stat-content h3 { font-size: 1.05rem; }
-  .compact-stat-content p { font-size: 0.7rem; }
+  .compact-stat-content p { font-size: 0.78rem; }
 }
 
-/* Regular responsive rules retained and adjusted */
+/* Regular responsive rules retained and refined */
 @media (max-width: 768px) {
   .dashboard-header { padding: 1rem 0; margin-bottom: 1rem; }
   .header-content { flex-direction: column; text-align: center; gap: 0.75rem; }
   .welcome-section { text-align: center; }
   .header-actions { width: 100%; justify-content: center; }
-  .logout-btn { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
-  .logout-text { display: inline; }
+  .logout-btn { padding: 0.5rem 0.75rem; font-size: 0.9rem; }
 
-  .url-shortener-section, .recent-urls-section { padding: 1.25rem; margin-bottom: 1.25rem; }
-  .quick-actions-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
-  .quick-action-btn { padding: 0.75rem 0.5rem; min-height:80px; }
-  .stats-compact-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
-  .compact-stat { padding: 0.75rem; gap: 0.5rem; }
-  .compact-stat-icon { width: 40px; height: 40px; font-size: 1rem; }
-  .compact-stat-content h3 { font-size: 1.1rem; }
-  .compact-stat-content p { font-size: 0.75rem; }
-  .recent-url-header { flex-direction: column; gap: 0.5rem; }
+  .url-shortener-section, .recent-urls-section { padding: 1.15rem; margin-bottom: 1.15rem; }
+  .quick-actions-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .quick-action-btn { padding: 0.8rem 0.6rem; min-height:86px; }
+  .stats-compact-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .compact-stat { padding: 0.85rem; gap: 0.6rem; }
+  .compact-stat-icon { width: 44px; height: 44px; font-size: 1.05rem; }
+  .compact-stat-content h3 { font-size: 1.15rem; }
+  .compact-stat-content p { font-size: 0.78rem; }
+  .recent-url-header { flex-direction: column; gap: 0.6rem; }
   .recent-url-short { width: 100%; }
   .recent-url-clicks { align-self: flex-start; }
   .recent-url-footer { flex-direction: column; align-items:flex-start; gap:0.75rem; }
   .recent-url-actions { width: 100%; }
   .analytics-btn { width: 100%; justify-content: center; }
-  .section-title { font-size: 1.1rem; }
+  .section-title { font-size: 1.12rem; }
 }
 
 @media (max-width: 480px) {
   .dashboard-page { padding-bottom: 1rem; }
   .dashboard-main { padding-top: 0.75rem; }
   .container { padding-left: 0.75rem; padding-right: 0.75rem; }
-  .url-shortener-section, .recent-urls-section, .quick-actions-section, .stats-overview-section { margin-bottom: 1rem; padding: 1rem; }
+  .url-shortener-section, .recent-urls-section, .quick-actions-section, .stats-overview-section { margin-bottom: 0.9rem; padding: 0.9rem; }
   .quick-actions-grid { grid-template-columns: repeat(2, 1fr); }
   .stats-compact-grid { grid-template-columns: 1fr; }
   .error-banner { flex-direction: column; align-items: stretch; text-align:center; }
@@ -375,7 +366,7 @@
 /* Touch-friendly improvements */
 @media (hover: none) and (pointer: coarse) {
   .quick-action-btn, .logout-btn, .copy-btn, .analytics-btn, .retry-btn {
-    min-height: 44px;
+    min-height: 48px;
   }
   .copy-btn, .analytics-btn { padding: 0.6rem 0.8rem; }
   .quick-action-btn { padding: 1rem 0.5rem; }
