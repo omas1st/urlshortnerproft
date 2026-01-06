@@ -37,9 +37,11 @@ const AdvancedSettings = ({ settings = {}, onChange }) => {
   const [expandedSection, setExpandedSection] = useState(null);
   const [showRuleGuide, setShowRuleGuide] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
+    setUploadError(''); // Clear error when toggling section
   };
 
   const handleChange = (key, value) => {
@@ -59,45 +61,83 @@ const AdvancedSettings = ({ settings = {}, onChange }) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
-    // Optionally validate file type/size client-side
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      alert('File is too large (max 5MB).');
+    // Clear previous errors
+    setUploadError('');
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError('Please upload a valid image file (JPEG, PNG, GIF, WebP)');
       return;
     }
 
-    const uploadPreset = 'url_shortener'; // matches server side
+    // Validate file size
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setUploadError('File is too large (max 5MB).');
+      return;
+    }
+
+    const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET || 'url_shortener';
     const cloudName = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
+    
     if (!cloudName) {
       console.error('CLOUDINARY_CLOUD_NAME not set in environment');
-      alert('Upload failed: cloudinary config missing');
+      setUploadError('Upload configuration error. Please contact support.');
+      return;
+    }
+
+    if (!uploadPreset) {
+      console.error('CLOUDINARY_UPLOAD_PRESET not set in environment');
+      setUploadError('Upload configuration error. Please contact support.');
       return;
     }
 
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', uploadPreset);
+    formData.append('folder', 'url_shortener'); // Specify folder for organization
 
     try {
       setUploading(true);
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        { method: 'POST', body: formData }
+        { 
+          method: 'POST', 
+          body: formData 
+        }
       );
+      
       const data = await res.json();
+      
       if (!res.ok) {
-        console.error('cloudinary error', data);
-        alert('Upload failed');
+        console.error('Cloudinary upload failed:', data);
+        
+        // Provide more specific error messages
+        if (data.error && data.error.message) {
+          setUploadError(`Upload failed: ${data.error.message}`);
+        } else if (res.status === 401) {
+          setUploadError('Upload failed: Invalid Cloudinary configuration. Please check your upload preset.');
+        } else {
+          setUploadError('Upload failed. Please try again or use a different image.');
+        }
         return;
       }
+      
       // store secure_url
       handleChange(key, data.secure_url || data.url || null);
+      
     } catch (err) {
       console.error('Upload failed:', err);
-      alert('Upload failed');
+      if (err.message && err.message.includes('Failed to fetch')) {
+        setUploadError('Network error. Please check your internet connection and try again.');
+      } else {
+        setUploadError('Upload failed. Please try again.');
+      }
     } finally {
       setUploading(false);
-      // Clear the input value (if applicable) by resetting file input - handled by the browser if necessary
+      // Reset the file input to allow re-uploading the same file
+      e.target.value = '';
     }
   };
 
@@ -228,14 +268,45 @@ const AdvancedSettings = ({ settings = {}, onChange }) => {
               type="file"
               accept="image/*"
               onChange={(e) => handleFileUpload(e, 'splashImage')}
+              id="splash-image-upload"
+              style={{ marginBottom: 8 }}
             />
-            {uploading && <p style={{ marginTop: 8 }}>Uploading image...</p>}
-            <small className="help-text">This image will show before redirecting visitors</small>
+            {uploading && <p style={{ marginTop: 8, color: '#666' }}>Uploading image...</p>}
+            {uploadError && (
+              <div style={{ marginTop: 8, padding: 8, background: '#ffebee', borderRadius: 4, border: '1px solid #ffcdd2' }}>
+                <p style={{ color: '#c62828', margin: 0, fontSize: 14 }}>{uploadError}</p>
+              </div>
+            )}
+            <small className="help-text" style={{ display: 'block', marginTop: 8 }}>
+              This image will show before redirecting visitors (Max: 5MB, Supported: JPEG, PNG, GIF, WebP)
+            </small>
             {settings.splashImage && (
-              <div className="image-preview" style={{ marginTop: 10 }}>
-                <img src={settings.splashImage} alt="Splash Preview" style={{ maxWidth: '100%', borderRadius: 8 }} />
-                <div style={{ marginTop: 8 }}>
-                  <button type="button" onClick={removeSplash} style={smallBtnStyle}>Remove splash</button>
+              <div className="image-preview" style={{ marginTop: 16 }}>
+                <h5 style={{ marginBottom: 8 }}>Preview:</h5>
+                <img 
+                  src={settings.splashImage} 
+                  alt="Splash Preview" 
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: 200, 
+                    borderRadius: 8,
+                    border: '1px solid #e0e0e0',
+                    objectFit: 'contain'
+                  }} 
+                />
+                <div style={{ marginTop: 12 }}>
+                  <button 
+                    type="button" 
+                    onClick={removeSplash} 
+                    style={{
+                      ...smallBtnStyle,
+                      background: '#ffebee',
+                      color: '#c62828',
+                      borderColor: '#ffcdd2'
+                    }}
+                  >
+                    Remove Splash Image
+                  </button>
                 </div>
               </div>
             )}
