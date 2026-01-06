@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { FaCopy, FaEdit, FaTrash, FaQrcode, FaChartBar, FaLock, FaUnlock, FaLink, FaDownload } from 'react-icons/fa';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
-import api from '../services/api'; // <-- use centralized api instance
+import api from '../services/api';
+import AdvancedSettings from './AdvancedSettings'; // Import AdvancedSettings
 
 const CopyButton = ({ text, className = '', children }) => {
   const [isCopied, setIsCopied] = useState(false);
@@ -59,7 +60,22 @@ const GeneratedUrls = () => {
     destinationUrl: '',
     customName: '',
     password: '',
-    expirationDate: ''
+    expirationDate: '',
+    // Advanced settings fields
+    splashImage: null,
+    generateQrCode: false,
+    destinations: [],
+    enableAffiliateTracking: false,
+    affiliateId: '',
+    affiliateTag: '',
+    commissionRate: '',
+    cookieDuration: 30,
+    customParams: '',
+    conversionPixel: '',
+    previewImage: null,
+    loadingPageImage: null,
+    loadingPageText: 'Loading...',
+    brandColor: '#000000'
   });
 
   useEffect(() => {
@@ -73,7 +89,6 @@ const GeneratedUrls = () => {
       setError('');
       const response = await api.get('/urls/user-urls');
 
-      // backend may return either response.data.urls or response.data.data
       if (response.data?.success === false) {
         throw new Error(response.data.message || 'Failed to fetch URLs');
       }
@@ -89,7 +104,6 @@ const GeneratedUrls = () => {
     }
   };
 
-  // Helper to get backend origin (prefer REACT_APP_BACKEND_URL)
   const getBackendOrigin = () => {
     if (process.env.REACT_APP_BACKEND_URL) return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
     try {
@@ -100,7 +114,6 @@ const GeneratedUrls = () => {
     }
   };
 
-  // Prefer server-provided shortUrl, otherwise construct using backend origin + shortId
   const getShortUrl = (urlObj) => {
     if (!urlObj) return '';
     if (urlObj.shortUrl) return urlObj.shortUrl;
@@ -145,15 +158,60 @@ const GeneratedUrls = () => {
     setEditData({
       destinationUrl: url.destinationUrl,
       customName: url.customName || '',
-      password: '',
-      expirationDate: url.expirationDate ? new Date(url.expirationDate).toISOString().slice(0, 16) : ''
+      password: '', // Don't show existing password for security
+      expirationDate: url.expirationDate ? new Date(url.expirationDate).toISOString().slice(0, 16) : '',
+      // Advanced settings
+      splashImage: url.splashImage || null,
+      generateQrCode: url.generateQrCode || false,
+      destinations: url.destinations || [],
+      enableAffiliateTracking: url.enableAffiliateTracking || false,
+      affiliateId: url.affiliateId || '',
+      affiliateTag: url.affiliateTag || '',
+      commissionRate: url.commissionRate || '',
+      cookieDuration: url.cookieDuration || 30,
+      customParams: url.customParams || '',
+      conversionPixel: url.conversionPixel || '',
+      previewImage: url.previewImage || null,
+      loadingPageImage: url.loadingPageImage || null,
+      loadingPageText: url.loadingPageText || 'Loading...',
+      brandColor: url.brandColor || '#000000'
     });
     setShowEditModal(true);
   };
 
   const updateUrl = async () => {
     try {
-      const response = await api.put(`/urls/${selectedUrl._id}`, editData);
+      // Prepare data for update
+      const updatePayload = {
+        destinationUrl: editData.destinationUrl,
+        customName: editData.customName,
+        password: editData.password || undefined,
+        expirationDate: editData.expirationDate || null,
+        // Advanced settings
+        splashImage: editData.splashImage,
+        generateQrCode: editData.generateQrCode,
+        destinations: editData.destinations,
+        enableAffiliateTracking: editData.enableAffiliateTracking,
+        affiliateId: editData.affiliateId,
+        affiliateTag: editData.affiliateTag,
+        commissionRate: editData.commissionRate,
+        cookieDuration: editData.cookieDuration,
+        customParams: editData.customParams,
+        conversionPixel: editData.conversionPixel,
+        previewImage: editData.previewImage,
+        loadingPageImage: editData.loadingPageImage,
+        loadingPageText: editData.loadingPageText,
+        brandColor: editData.brandColor
+      };
+
+      // Remove undefined or empty string fields
+      Object.keys(updatePayload).forEach(key => {
+        if (updatePayload[key] === undefined || updatePayload[key] === '') {
+          delete updatePayload[key];
+        }
+      });
+
+      const response = await api.put(`/urls/${selectedUrl._id}`, updatePayload);
 
       if (response.data?.success === false) {
         throw new Error(response.data.message || 'Failed to update URL');
@@ -161,11 +219,16 @@ const GeneratedUrls = () => {
 
       const updatedUrl = response.data.url ?? response.data;
       setUrls(urls.map(url =>
-        url._id === selectedUrl._id ? updatedUrl : url
+        url._id === selectedUrl._id ? { ...url, ...updatedUrl } : url
       ));
       toast.success('URL updated successfully');
       setShowEditModal(false);
       setSelectedUrl(null);
+      
+      // Refresh URLs to get updated shortId if customName changed
+      if (editData.customName !== selectedUrl.customName) {
+        setTimeout(() => fetchUserUrls(), 500);
+      }
     } catch (err) {
       console.error('Update URL error:', err);
       toast.error(err?.response?.data?.message || err.message || 'Failed to update URL');
@@ -193,7 +256,6 @@ const GeneratedUrls = () => {
     }
   };
 
-  // Helper to download the QR SVG (serializes svg to file)
   const downloadQrSvg = (shortId) => {
     try {
       const svg = document.querySelector('.qr-modal svg');
@@ -273,15 +335,18 @@ const GeneratedUrls = () => {
                           rel="noopener noreferrer"
                           className="short-url-link"
                         >
-                          {short}
+                          {url.customName ? `${getBackendOrigin()}/s/${url.customName}` : short}
                         </a>
                         <CopyButton
-                          text={short}
+                          text={url.customName ? `${getBackendOrigin()}/s/${url.customName}` : short}
                           className="small-copy-btn"
                         />
                       </div>
                       {url.customName && (
                         <small className="custom-name">Alias: {url.customName}</small>
+                      )}
+                      {url.shortId && url.customName !== url.shortId && (
+                        <small className="short-id">ID: {url.shortId}</small>
                       )}
                     </td>
                     <td className="destination-cell">
@@ -335,7 +400,7 @@ const GeneratedUrls = () => {
                         </Link>
 
                         <CopyButton
-                          text={short}
+                          text={getShortUrl(url)}
                           className="action-btn copy-btn"
                           title="Copy URL"
                         >
@@ -430,12 +495,12 @@ const GeneratedUrls = () => {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Modal - Updated with AdvancedSettings */}
       {showEditModal && selectedUrl && (
         <div className="modal-overlay">
-          <div className="modal edit-modal">
+          <div className="modal edit-modal expanded-edit-modal">
             <div className="modal-header">
-              <h3>Edit URL: {selectedUrl.shortId}</h3>
+              <h3>Edit URL: {selectedUrl.customName || selectedUrl.shortId}</h3>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -448,43 +513,56 @@ const GeneratedUrls = () => {
             </div>
 
             <div className="modal-body">
-              <div className="form-group">
-                <label>Destination URL:</label>
-                <input
-                  type="url"
-                  value={editData.destinationUrl}
-                  onChange={(e) => setEditData({ ...editData, destinationUrl: e.target.value })}
-                  placeholder="https://example.com"
-                  required
-                />
+              <div className="basic-edit-section">
+                <div className="form-group">
+                  <label>Destination URL:</label>
+                  <input
+                    type="url"
+                    value={editData.destinationUrl}
+                    onChange={(e) => setEditData({ ...editData, destinationUrl: e.target.value })}
+                    placeholder="https://example.com"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Custom Name (Alias):</label>
+                  <input
+                    type="text"
+                    value={editData.customName}
+                    onChange={(e) => setEditData({ ...editData, customName: e.target.value })}
+                    placeholder="Custom alias (will change short URL)"
+                  />
+                  <small className="help-text">
+                    Changing this will update your short URL. Old URL will stop working.
+                  </small>
+                </div>
+
+                <div className="form-group">
+                  <label>Password:</label>
+                  <input
+                    type="password"
+                    value={editData.password}
+                    onChange={(e) => setEditData({ ...editData, password: e.target.value })}
+                    placeholder="Set new password (leave empty to keep current)"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Expiration Date:</label>
+                  <input
+                    type="datetime-local"
+                    value={editData.expirationDate}
+                    onChange={(e) => setEditData({ ...editData, expirationDate: e.target.value })}
+                  />
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Custom Name:</label>
-                <input
-                  type="text"
-                  value={editData.customName}
-                  onChange={(e) => setEditData({ ...editData, customName: e.target.value })}
-                  placeholder="Optional custom name"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Password:</label>
-                <input
-                  type="password"
-                  value={editData.password}
-                  onChange={(e) => setEditData({ ...editData, password: e.target.value })}
-                  placeholder="Set new password (leave empty to keep current)"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Expiration Date:</label>
-                <input
-                  type="datetime-local"
-                  value={editData.expirationDate}
-                  onChange={(e) => setEditData({ ...editData, expirationDate: e.target.value })}
+              <div className="advanced-edit-section">
+                <h4>Advanced Settings</h4>
+                <AdvancedSettings
+                  settings={editData}
+                  onChange={(newSettings) => setEditData({ ...editData, ...newSettings })}
                 />
               </div>
             </div>
@@ -503,7 +581,7 @@ const GeneratedUrls = () => {
                 onClick={updateUrl}
                 className="save-btn"
               >
-                Save Changes
+                Save All Changes
               </button>
             </div>
           </div>
