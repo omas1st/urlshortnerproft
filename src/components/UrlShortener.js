@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AdvancedSettings from './AdvancedSettings';
-import { FaLink, FaCog, FaCopy, FaCheck } from 'react-icons/fa';
+import { FaLink, FaCog, FaCopy, FaCheck, FaQrcode, FaDownload } from 'react-icons/fa';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import './UrlShortener.css';
@@ -17,6 +17,7 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
   const [loading, setLoading] = useState(false);
   const [generatedUrl, setGeneratedUrl] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [qrCopied, setQrCopied] = useState(false);
   const [advancedSettings, setAdvancedSettings] = useState({
     password: '',
     expirationDate: null,
@@ -50,10 +51,8 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
     }
   };
 
-  // Preferred backend origin: REACT_APP_BACKEND_URL, otherwise attempt dev fallback
   const getBackendOrigin = () => {
     if (process.env.REACT_APP_BACKEND_URL) return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
-    // dev fallback: if frontend running on :3000 assume backend on :5000
     try {
       const winOrigin = window.location.origin;
       return winOrigin.includes(':3000') ? winOrigin.replace(':3000', ':5000') : winOrigin;
@@ -154,6 +153,55 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
     }
   };
 
+  const copyQrCodeToClipboard = async (qrCodeData) => {
+    try {
+      // Convert base64 to blob
+      const base64Response = await fetch(qrCodeData);
+      const blob = await base64Response.blob();
+      
+      // Copy blob to clipboard
+      const item = new ClipboardItem({ 'image/png': blob });
+      await navigator.clipboard.write([item]);
+      
+      setQrCopied(true);
+      toast.success('QR Code copied to clipboard!');
+      setTimeout(() => setQrCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy QR code:', err);
+      toast.error('Failed to copy QR code');
+    }
+  };
+
+  const downloadQrCode = (qrCodeData, shortId) => {
+    try {
+      // Convert base64 to blob
+      const base64Data = qrCodeData.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/png' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `qr-code-${shortId}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('QR Code downloaded!');
+    } catch (err) {
+      console.error('Failed to download QR code:', err);
+      toast.error('Failed to download QR code');
+    }
+  };
+
   const createNewUrl = () => {
     setGeneratedUrl(null);
     setDestinationUrl('');
@@ -233,7 +281,6 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
                 <div className="url-row">
                   <span className="label">Short URL:</span>
                   <div className="short-url-display">
-                    {/* Use server-provided shortUrl if available, otherwise construct one */}
                     <a 
                       href={generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId)}
                       target="_blank"
@@ -271,6 +318,36 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
                   <span className="short-id">{generatedUrl.shortId}</span>
                 </div>
               </div>
+              
+              {/* QR Code Display Section - NEW */}
+              {generatedUrl.qrCodeData && advancedSettings.generateQrCode && (
+                <div className="qr-code-section">
+                  <div className="section-header">
+                    <FaQrcode /> Generated QR Code
+                  </div>
+                  <div className="qr-code-display">
+                    <img 
+                      src={generatedUrl.qrCodeData} 
+                      alt="QR Code" 
+                      className="qr-code-image"
+                    />
+                    <div className="qr-code-actions">
+                      <button
+                        onClick={() => copyQrCodeToClipboard(generatedUrl.qrCodeData)}
+                        className="qr-copy-btn"
+                      >
+                        <FaCopy /> {qrCopied ? 'Copied!' : 'Copy QR Code'}
+                      </button>
+                      <button
+                        onClick={() => downloadQrCode(generatedUrl.qrCodeData, generatedUrl.shortId)}
+                        className="qr-download-btn"
+                      >
+                        <FaDownload /> Download QR
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               <div className="action-buttons">
                 <button

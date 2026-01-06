@@ -141,7 +141,7 @@ const Footer = () => {
         </div>
         
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} ShortLink Pro. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} OmsUrl. All rights reserved.</p>
           <p className="footer-contact">
             Need immediate assistance? Email: <a href={`mailto:${process.env.REACT_APP_ADMIN_EMAIL || 'omas7th@gmail.com'}`}>
               {process.env.REACT_APP_ADMIN_EMAIL || 'omas7th@gmail.com'}

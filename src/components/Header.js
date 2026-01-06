@@ -20,7 +20,7 @@ const Header = () => {
           <div className="logo-section">
             <FaLink className="logo-icon" />
             <Link to="/" className="logo-text">
-              ShortLink Pro
+              OmsUrl
             </Link>
           </div>
           
