@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import UrlShortener from '../components/UrlShortener';
 import NotificationBell from '../components/NotificationBell';
+import QRCodesPopup from '../components/QRCodesPopup'; // NEW IMPORT
 import { 
   FaSignOutAlt, 
   FaLink, 
@@ -32,6 +33,9 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [showQRCodesPopup, setShowQRCodesPopup] = useState(false); // NEW STATE
+  const [qrCodesData, setQrCodesData] = useState([]); // NEW STATE
+  const [loadingQRCodes, setLoadingQRCodes] = useState(false); // NEW STATE
   const headerRef = useRef(null);
 
   /**
@@ -143,6 +147,62 @@ const Dashboard = () => {
     }
   }, [getBackendOrigin]);
 
+  /**
+   * fetchQRCodesData - NEW FUNCTION
+   * Fetch all user URLs with QR codes
+   */
+  const fetchQRCodesData = useCallback(async () => {
+    try {
+      setLoadingQRCodes(true);
+      const response = await api.get('/urls/user-urls?limit=1000');
+      
+      let urls = [];
+      if (response.data && response.data.success) {
+        if (Array.isArray(response.data.urls)) {
+          urls = response.data.urls;
+        } else if (Array.isArray(response.data.data)) {
+          urls = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          urls = response.data;
+        }
+      }
+      
+      // Filter URLs that have QR codes or generateQrCode enabled
+      const urlsWithQRCodes = urls.filter(url => 
+        url.qrCodeData || url.generateQrCode || url.hasQrCode
+      ).map(url => ({
+        ...url,
+        shortUrl: url.shortUrl || getShortUrl(url),
+        qrCodeData: url.qrCodeData || null
+      }));
+      
+      setQrCodesData(urlsWithQRCodes);
+      return urlsWithQRCodes;
+    } catch (error) {
+      console.error('Failed to fetch QR codes:', error);
+      toast.error('Failed to load QR codes');
+      return [];
+    } finally {
+      setLoadingQRCodes(false);
+    }
+  }, [getShortUrl]);
+
+  /**
+   * handleOpenQRCodesPopup - NEW FUNCTION
+   */
+  const handleOpenQRCodesPopup = async () => {
+    setShowQRCodesPopup(true);
+    // Fetch QR codes data when popup opens
+    await fetchQRCodesData();
+  };
+
+  /**
+   * handleCloseQRCodesPopup - NEW FUNCTION
+   */
+  const handleCloseQRCodesPopup = () => {
+    setShowQRCodesPopup(false);
+  };
+
   // Handle scroll to show/hide header
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY;
@@ -188,7 +248,16 @@ const Dashboard = () => {
       totalUrls: (prev.totalUrls || 0) + 1,
       activeUrls: (prev.activeUrls || 0) + 1
     }));
-  }, [getBackendOrigin]);
+    
+    // If the new URL has a QR code, add it to the QR codes data
+    if (newUrl.qrCodeData || newUrl.generateQrCode) {
+      setQrCodesData(prev => [{
+        ...newUrl,
+        shortUrl: newUrl.shortUrl || getShortUrl(newUrl),
+        qrCodeData: newUrl.qrCodeData || null
+      }, ...prev]);
+    }
+  }, [getBackendOrigin, getShortUrl]);
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -282,12 +351,16 @@ const Dashboard = () => {
                   <span className="quick-action-text">Analytics</span>
                 </Link>
                 
-                <Link to="/generated-urls?tab=qr" className="quick-action-btn">
+                {/* Updated QR Codes Button */}
+                <button 
+                  className="quick-action-btn"
+                  onClick={handleOpenQRCodesPopup}
+                >
                   <div className="quick-action-icon">
                     <FaQrcode />
                   </div>
                   <span className="quick-action-text">QR Codes</span>
-                </Link>
+                </button>
                 
                 <div className="quick-action-btn" onClick={() => document.querySelector('.url-shortener-section')?.scrollIntoView({ behavior: 'smooth' })}>
                   <div className="quick-action-icon">
@@ -434,6 +507,16 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* QR Codes Popup */}
+      {showQRCodesPopup && (
+        <QRCodesPopup
+          qrCodesData={qrCodesData}
+          loading={loadingQRCodes}
+          onClose={handleCloseQRCodesPopup}
+          onRefresh={fetchQRCodesData}
+        />
+      )}
     </div>
   );
 };

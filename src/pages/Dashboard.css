@@ -383,3 +383,28 @@
   .copy-btn, .analytics-btn { padding: 0.6rem 0.8rem; }
   .quick-action-btn { padding: 1rem 0.5rem; }
 }
+
+/* Add to src/pages/Dashboard.css */
+
+/* QR Codes Button in Quick Actions */
+.quick-actions-grid button.quick-action-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.quick-actions-grid button.quick-action-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
