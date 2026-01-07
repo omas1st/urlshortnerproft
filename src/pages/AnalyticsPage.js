@@ -81,9 +81,9 @@ const AnalyticsPage = () => {
     return date.toISOString().split('T')[0];
   };
 
-  // Enhanced Normalization helper - with proper handling for all time ranges
-  const normalizeAnalytics = useCallback((raw = {}) => {
-    console.log('Normalizing analytics data:', { raw });
+  // Enhanced Normalization helper - with proper handling for all time ranges and both overall/url-specific data
+  const normalizeAnalytics = useCallback((raw = {}, isOverall = false) => {
+    console.log('Normalizing analytics data:', { raw, isOverall });
     
     // Clone the raw data
     const normalized = { ...raw };
@@ -92,42 +92,70 @@ const AnalyticsPage = () => {
     let labels = [];
     let values = [];
 
-    if (Array.isArray(raw.timeSeries) && raw.timeSeries.length > 0) {
-      raw.timeSeries.forEach(item => {
-        let label = item.label ?? item.date ?? item._id ?? item.x;
-        let value = (item.value ?? item.count ?? item.y ?? item.total) || 0;
+    if (isOverall) {
+      // Handle overall analytics data structure
+      if (raw.clicksOverTime && Array.isArray(raw.clicksOverTime.labels) && Array.isArray(raw.clicksOverTime.values)) {
+        labels = raw.clicksOverTime.labels.slice();
+        values = raw.clicksOverTime.values.map(v => Number(v || 0));
+      } else if (Array.isArray(raw.timeSeries) && raw.timeSeries.length > 0) {
+        raw.timeSeries.forEach(item => {
+          let label = item.label ?? item.date ?? item._id ?? item.x;
+          let value = (item.value ?? item.count ?? item.y ?? item.total) || 0;
 
-        if (typeof label === 'string') {
-          // Handle different date formats
-          if (/^\d{4}-\d{2}$/.test(label)) { // YYYY-MM format (monthly)
-            const [year, month] = label.split('-');
-            label = new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-          } else if (/^\d{4}-\d{2}-\d{2}/.test(label)) { // YYYY-MM-DD format
-            try { label = new Date(label).toLocaleDateString(); } catch {}
+          if (typeof label === 'string') {
+            // Handle different date formats
+            if (/^\d{4}-\d{2}$/.test(label)) { // YYYY-MM format (monthly)
+              const [year, month] = label.split('-');
+              label = new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            } else if (/^\d{4}-\d{2}-\d{2}/.test(label)) { // YYYY-MM-DD format
+              try { label = new Date(label).toLocaleDateString(); } catch {}
+            }
+          } else if (label instanceof Date) {
+            label = label.toLocaleDateString();
           }
-        } else if (label instanceof Date) {
-          label = label.toLocaleDateString();
-        }
-        labels.push(String(label ?? ''));
-        values.push(Number(value));
-      });
-    }
-    else if (raw.clicksOverTime && Array.isArray(raw.clicksOverTime.labels) && Array.isArray(raw.clicksOverTime.values)) {
-      labels = raw.clicksOverTime.labels.slice();
-      values = raw.clicksOverTime.values.map(v => Number(v || 0));
-    }
-    else if (Array.isArray(raw.recentClicks) && raw.recentClicks.length > 0) {
-      const map = {};
-      raw.recentClicks.forEach(c => {
-        const t = c.timestamp ? new Date(c.timestamp) : new Date();
-        const day = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
-        map[day] = (map[day] || 0) + 1;
-      });
-      const entries = Object.entries(map).sort((a,b) => new Date(a[0]) - new Date(b[0]));
-      entries.forEach(([day, cnt]) => {
-        labels.push(new Date(day).toLocaleDateString());
-        values.push(cnt);
-      });
+          labels.push(String(label ?? ''));
+          values.push(Number(value));
+        });
+      }
+    } else {
+      // Handle URL-specific data structure
+      if (Array.isArray(raw.timeSeries) && raw.timeSeries.length > 0) {
+        raw.timeSeries.forEach(item => {
+          let label = item.label ?? item.date ?? item._id ?? item.x;
+          let value = (item.value ?? item.count ?? item.y ?? item.total) || 0;
+
+          if (typeof label === 'string') {
+            // Handle different date formats
+            if (/^\d{4}-\d{2}$/.test(label)) { // YYYY-MM format (monthly)
+              const [year, month] = label.split('-');
+              label = new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            } else if (/^\d{4}-\d{2}-\d{2}/.test(label)) { // YYYY-MM-DD format
+              try { label = new Date(label).toLocaleDateString(); } catch {}
+            }
+          } else if (label instanceof Date) {
+            label = label.toLocaleDateString();
+          }
+          labels.push(String(label ?? ''));
+          values.push(Number(value));
+        });
+      }
+      else if (raw.clicksOverTime && Array.isArray(raw.clicksOverTime.labels) && Array.isArray(raw.clicksOverTime.values)) {
+        labels = raw.clicksOverTime.labels.slice();
+        values = raw.clicksOverTime.values.map(v => Number(v || 0));
+      }
+      else if (Array.isArray(raw.recentClicks) && raw.recentClicks.length > 0) {
+        const map = {};
+        raw.recentClicks.forEach(c => {
+          const t = c.timestamp ? new Date(c.timestamp) : new Date();
+          const day = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+          map[day] = (map[day] || 0) + 1;
+        });
+        const entries = Object.entries(map).sort((a,b) => new Date(a[0]) - new Date(b[0]));
+        entries.forEach(([day, cnt]) => {
+          labels.push(new Date(day).toLocaleDateString());
+          values.push(cnt);
+        });
+      }
     }
 
     normalized.clicksOverTime = { labels, values };
@@ -137,23 +165,39 @@ const AnalyticsPage = () => {
     let countries = [];
     let visits = [];
     
-    // Handle different backend response structures
-    if (raw.topCountries && raw.topCountries.rawData) {
-      // New structure from analytics controller
-      countriesData = raw.topCountries.rawData;
-    } else if (raw.topCountries && Array.isArray(raw.topCountries)) {
-      // Array structure
-      countriesData = raw.topCountries;
-    } else if (raw.countries && Array.isArray(raw.countries)) {
-      // Alternative array structure
-      countriesData = raw.countries;
-    } else if (typeof raw.topCountries === 'object' && raw.topCountries !== null) {
-      // Object structure with countries/visits arrays
-      if (Array.isArray(raw.topCountries.countries) && Array.isArray(raw.topCountries.visits)) {
-        countriesData = raw.topCountries.countries.map((country, index) => ({
-          country,
-          visits: raw.topCountries.visits[index] || 0
-        }));
+    if (isOverall) {
+      // Handle overall analytics country data
+      if (raw.topCountries && raw.topCountries.rawData) {
+        countriesData = raw.topCountries.rawData;
+      } else if (raw.topCountries && Array.isArray(raw.topCountries)) {
+        countriesData = raw.topCountries;
+      } else if (raw.countries && Array.isArray(raw.countries)) {
+        countriesData = raw.countries;
+      } else if (typeof raw.topCountries === 'object' && raw.topCountries !== null) {
+        if (Array.isArray(raw.topCountries.countries) && Array.isArray(raw.topCountries.visits)) {
+          countriesData = raw.topCountries.countries.map((country, index) => ({
+            country,
+            visits: raw.topCountries.visits[index] || 0
+          }));
+        } else if (raw.topCountries.rawData && Array.isArray(raw.topCountries.rawData)) {
+          countriesData = raw.topCountries.rawData;
+        }
+      }
+    } else {
+      // Handle URL-specific country data
+      if (raw.topCountries && raw.topCountries.rawData) {
+        countriesData = raw.topCountries.rawData;
+      } else if (raw.topCountries && Array.isArray(raw.topCountries)) {
+        countriesData = raw.topCountries;
+      } else if (raw.countries && Array.isArray(raw.countries)) {
+        countriesData = raw.countries;
+      } else if (typeof raw.topCountries === 'object' && raw.topCountries !== null) {
+        if (Array.isArray(raw.topCountries.countries) && Array.isArray(raw.topCountries.visits)) {
+          countriesData = raw.topCountries.countries.map((country, index) => ({
+            country,
+            visits: raw.topCountries.visits[index] || 0
+          }));
+        }
       }
     }
     
@@ -190,24 +234,29 @@ const AnalyticsPage = () => {
 
     // ---------- Device distribution ----------
     let devicesArr = [0, 0, 0];
-    if (raw.deviceDistribution && typeof raw.deviceDistribution === 'object' && !Array.isArray(raw.deviceDistribution)) {
+    
+    // Handle device distribution for both overall and specific URLs
+    if (raw.deviceDistribution && typeof raw.deviceDistribution === 'object') {
       const dd = raw.deviceDistribution;
-      devicesArr = [
-        Number(dd.desktop || dd.Desktop || dd.D || dd[0] || 0),
-        Number(dd.mobile || dd.Mobile || dd.M || dd[1] || 0),
-        Number(dd.tablet || dd.Tablet || dd.T || dd[2] || 0)
-      ];
-    } else if (Array.isArray(raw.deviceDistribution) && raw.deviceDistribution.length >= 3) {
-      devicesArr = raw.deviceDistribution.map(v => Number(v || 0));
-    } else if (Array.isArray(raw.devices) && raw.devices.length >= 3) {
-      devicesArr = raw.devices.map(v => Number(v || 0));
-    } else if (raw.deviceCounts && typeof raw.deviceCounts === 'object') {
-      devicesArr = [
-        Number(raw.deviceCounts.desktop || 0),
-        Number(raw.deviceCounts.mobile || 0),
-        Number(raw.deviceCounts.tablet || 0)
-      ];
+      
+      // Check if it's in the format { desktop: x, mobile: y, tablet: z }
+      if (dd.desktop !== undefined || dd.mobile !== undefined || dd.tablet !== undefined) {
+        devicesArr = [
+          Number(dd.desktop || 0),
+          Number(dd.mobile || 0),
+          Number(dd.tablet || 0)
+        ];
+      }
+      // Check if it's in the format { devices: [d, m, t] }
+      else if (dd.devices && Array.isArray(dd.devices)) {
+        devicesArr = dd.devices.map(v => Number(v || 0));
+      }
     }
+    // Handle legacy format where deviceDistribution might be an array
+    else if (Array.isArray(raw.deviceDistribution) && raw.deviceDistribution.length >= 3) {
+      devicesArr = raw.deviceDistribution.map(v => Number(v || 0));
+    }
+    
     normalized.deviceDistribution = { devices: devicesArr };
 
     // ---------- Engagement / bounce vs engaged ----------
@@ -215,19 +264,37 @@ const AnalyticsPage = () => {
     let engaged = 0;
     let bounceRate = 0;
     
-    if (raw.engagement && typeof raw.engagement === 'object') {
-      bounced = Number(raw.engagement.bounced || raw.engagement.bounceCount || 0);
-      engaged = Number(raw.engagement.engaged || raw.engagement.engagedCount || 0);
-      bounceRate = Number(raw.engagement.bounceRate || 0);
-    } else if (raw.bounced !== undefined || raw.engaged !== undefined) {
-      bounced = Number(raw.bounced || 0);
-      engaged = Number(raw.engaged || 0);
-      bounceRate = raw.totalClicks ? (bounced / raw.totalClicks * 100) : 0;
-    } else if (raw.bounceRate !== undefined && (raw.totalClicks !== undefined || raw.totalClicks === 0)) {
-      const total = Number(raw.totalClicks || 0);
-      bounceRate = Math.min(100, Math.max(0, Number(raw.bounceRate || 0)));
-      bounced = Math.round(total * (bounceRate / 100));
-      engaged = Math.max(0, total - bounced);
+    if (isOverall) {
+      // Handle overall analytics engagement data
+      if (raw.engagement && typeof raw.engagement === 'object') {
+        bounced = Number(raw.engagement.bounced || raw.engagement.bounceCount || 0);
+        engaged = Number(raw.engagement.engaged || raw.engagement.engagedCount || 0);
+        bounceRate = Number(raw.engagement.bounceRate || 0);
+      } else if (raw.bounced !== undefined || raw.engaged !== undefined) {
+        bounced = Number(raw.bounced || 0);
+        engaged = Number(raw.engaged || 0);
+        bounceRate = raw.totalClicks ? (bounced / raw.totalClicks * 100) : 0;
+      } else if (raw.bounceRate !== undefined && (raw.totalClicks !== undefined || raw.totalClicks === 0)) {
+        const total = Number(raw.totalClicks || 0);
+        bounceRate = Math.min(100, Math.max(0, Number(raw.bounceRate || 0)));
+        bounced = Math.round(total * (bounceRate / 100));
+        engaged = Math.max(0, total - bounced);
+      }
+    } else {
+      if (raw.engagement && typeof raw.engagement === 'object') {
+        bounced = Number(raw.engagement.bounced || raw.engagement.bounceCount || 0);
+        engaged = Number(raw.engagement.engaged || raw.engagement.engagedCount || 0);
+        bounceRate = Number(raw.engagement.bounceRate || 0);
+      } else if (raw.bounced !== undefined || raw.engaged !== undefined) {
+        bounced = Number(raw.bounced || 0);
+        engaged = Number(raw.engaged || 0);
+        bounceRate = raw.totalClicks ? (bounced / raw.totalClicks * 100) : 0;
+      } else if (raw.bounceRate !== undefined && (raw.totalClicks !== undefined || raw.totalClicks === 0)) {
+        const total = Number(raw.totalClicks || 0);
+        bounceRate = Math.min(100, Math.max(0, Number(raw.bounceRate || 0)));
+        bounced = Math.round(total * (bounceRate / 100));
+        engaged = Math.max(0, total - bounced);
+      }
     }
     
     normalized.engagement = { bounced, engaged, bounceRate };
@@ -242,22 +309,30 @@ const AnalyticsPage = () => {
     }
 
     // recentClicks fallback
-    normalized.recentClicks = Array.isArray(raw.recentClicks) ? raw.recentClicks : 
-                             (Array.isArray(raw.recent_clicks) ? raw.recent_clicks : []);
+    if (isOverall) {
+      normalized.recentClicks = Array.isArray(raw.recentClicks) ? raw.recentClicks : [];
+    } else {
+      normalized.recentClicks = Array.isArray(raw.recentClicks) ? raw.recentClicks : 
+                               (Array.isArray(raw.recent_clicks) ? raw.recent_clicks : []);
+    }
 
     // Keep some top-level convenience fields
     normalized.totalClicks = Number(raw.totalClicks || raw.total_clicks || 0);
     normalized.uniqueClicks = Number(raw.uniqueClicks || raw.unique_clicks || raw.uniqueVisitors || 0);
     
-    // Detailed metrics - Use actual backend data, not static defaults
+    // ---------- Detailed metrics ----------
+    // Use backend data properly
+    const detailedMetrics = raw.detailedMetrics || {};
+    
     normalized.detailedMetrics = {
-      avgTimeToClick: raw.avgTimeToClick || raw.averageTimeToClick || 'N/A',
-      avgScrollDepth: raw.avgScrollDepth || raw.averageScrollDepth || 'N/A',
-      peakHour: raw.peakHour || raw.peakHourOfDay || 'N/A',
-      topReferrer: raw.topReferrer || raw.topReferrerDomain || 'Direct',
-      avgSessionDuration: raw.avgSessionDuration || raw.avgTimeOnPage || 'N/A',
-      conversionRate: raw.conversionRate || '0%',
-      pagesPerSession: raw.pagesPerSession || 1.0
+      avgTimeToClick: detailedMetrics.avgTimeToClick || 'N/A',
+      avgScrollDepth: detailedMetrics.avgScrollDepth || 'N/A',
+      peakHour: detailedMetrics.peakHour || 'N/A',
+      topReferrer: detailedMetrics.topReferrer || 'Direct',
+      avgSessionDuration: detailedMetrics.avgSessionDuration || 'N/A',
+      conversionRate: detailedMetrics.conversionRate || '0%',
+      pagesPerSession: detailedMetrics.pagesPerSession !== undefined ? 
+        parseFloat(detailedMetrics.pagesPerSession) : 1.0
     };
 
     console.log('Normalized analytics data:', normalized);
@@ -299,7 +374,7 @@ const AnalyticsPage = () => {
       console.log('Analytics response:', body);
       
       const rawAnalytics = body?.analytics ?? body?.data ?? body;
-      const normalized = normalizeAnalytics(rawAnalytics);
+      const normalized = normalizeAnalytics(rawAnalytics, false);
       setAnalyticsData(normalized);
       
       // Extract detailed metrics from analytics response
@@ -354,32 +429,40 @@ const AnalyticsPage = () => {
 
       console.log('Fetching overall analytics with params:', params);
 
-      const res = await api.get(`/urls/dashboard-stats`, { params });
-      const body = res.data;
-      console.log('Overall analytics response:', body);
+      // Try multiple endpoints for overall analytics
+      let res;
+      let rawAnalytics;
       
-      // For dashboard-stats, the response structure might be different
-      let normalized;
-      if (body?.analytics) {
-        normalized = normalizeAnalytics(body.analytics);
-      } else if (body?.data) {
-        normalized = normalizeAnalytics(body.data);
-      } else {
-        normalized = normalizeAnalytics(body);
+      try {
+        // First try the overall-analytics endpoint
+        res = await api.get('/urls/overall-analytics', { params });
+        const body = res.data;
+        console.log('Overall analytics response from /overall-analytics:', body);
+        
+        rawAnalytics = body?.analytics ?? body?.data ?? body;
+      } catch (err) {
+        console.log('Fallback to dashboard-stats endpoint:', err?.message);
+        // Fallback to dashboard-stats endpoint
+        res = await api.get('/urls/dashboard-stats', { params });
+        const body = res.data;
+        console.log('Overall analytics response from /dashboard-stats:', body);
+        
+        rawAnalytics = body?.analytics ?? body?.data ?? body;
       }
       
+      const normalized = normalizeAnalytics(rawAnalytics, true);
       setAnalyticsData(normalized);
       setSelectedUrl(null);
       
       // Extract detailed metrics
-      if (body?.analytics?.detailedMetrics) {
-        setDetailedMetrics(body.analytics.detailedMetrics);
-      } else if (body?.detailedMetrics) {
-        setDetailedMetrics(body.detailedMetrics);
+      if (rawAnalytics?.detailedMetrics) {
+        setDetailedMetrics(rawAnalytics.detailedMetrics);
+      } else if (rawAnalytics?.analytics?.detailedMetrics) {
+        setDetailedMetrics(rawAnalytics.analytics.detailedMetrics);
       }
       
-      if (!body.success && body.message) {
-        toast.error(body.message);
+      if (res.data && !res.data.success && res.data.message) {
+        toast.error(res.data.message);
       } else {
         toast.success('Overall analytics loaded');
       }
@@ -427,10 +510,31 @@ const AnalyticsPage = () => {
   const handleExport = useCallback(async () => {
     try {
       if (!urlId) {
-        toast.error('Export is only supported for a specific URL on this endpoint.');
+        // For overall analytics, try to export aggregated data
+        const params = { format: 'csv', range: timeRange, type: 'overall' };
+        if (useCustomDate) {
+          params.startDate = formatDateForAPI(startDate);
+          params.endDate = formatDateForAPI(endDate);
+        }
+        
+        const res = await api.get('/analytics/export/overall', { 
+          params, 
+          responseType: 'blob', 
+          timeout: 60000 
+        });
+        
+        const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.setAttribute('download', `overall-analytics-${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        toast.success('Overall analytics exported successfully');
         return;
       }
       
+      // For specific URL
       const params = { format: 'csv', range: timeRange };
       if (useCustomDate) {
         params.startDate = formatDateForAPI(startDate);
@@ -619,7 +723,7 @@ const AnalyticsPage = () => {
               <p className="time-range-display"><FaCalendarAlt /> {getDisplayTimeRange()}</p>
             </div>
             <div className="action-section">
-              <button onClick={handleExport} className="export-btn" disabled={isUpdating || !urlId}><FaDownload /> Export Data</button>
+              <button onClick={handleExport} className="export-btn" disabled={isUpdating}><FaDownload /> Export Data</button>
             </div>
           </div>
         </div>
