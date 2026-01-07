@@ -147,4 +147,55 @@ export const sendFeedback = async (data) => {
   }
 };
 
+// Custom Domain API functions
+export const addCustomDomain = async (domainData) => {
+  try {
+    const response = await api.post('/custom-domains/add', domainData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to add custom domain:', error);
+    throw error;
+  }
+};
+
+export const verifyCustomDomain = async (domainId) => {
+  try {
+    const response = await api.post(`/custom-domains/${domainId}/verify`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to verify domain:', error);
+    throw error;
+  }
+};
+
+export const getUserCustomDomains = async () => {
+  try {
+    const response = await api.get('/custom-domains');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get custom domains:', error);
+    throw error;
+  }
+};
+
+export const getBrandableUrls = async () => {
+  try {
+    const response = await api.get('/custom-domains/urls/brandable');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get brandable URLs:', error);
+    throw error;
+  }
+};
+
+export const deleteCustomDomain = async (domainId) => {
+  try {
+    const response = await api.delete(`/custom-domains/${domainId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete domain:', error);
+    throw error;
+  }
+};
+
 export default api;

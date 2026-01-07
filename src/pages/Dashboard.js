@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import UrlShortener from '../components/UrlShortener';
 import NotificationBell from '../components/NotificationBell';
 import QRCodesPopup from '../components/QRCodesPopup'; // NEW IMPORT
+import BrandLinkPopup from '../components/BrandLinkPopup'; // NEW IMPORT
 import { 
   FaSignOutAlt, 
   FaLink, 
@@ -13,7 +14,9 @@ import {
   FaTachometerAlt,
   FaCalendarDay,
   FaCalendarAlt,
-  FaChevronRight
+  FaChevronRight,
+  FaGlobe,  // ADDED: FaGlobe icon import
+  FaShoppingCart  // ADDED: FaShoppingCart icon for Buy Domain
 } from 'react-icons/fa';
 import { FiCopy, FiEye, FiExternalLink } from 'react-icons/fi';
 import api from '../services/api';
@@ -34,9 +37,13 @@ const Dashboard = () => {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [showQRCodesPopup, setShowQRCodesPopup] = useState(false); // NEW STATE
+  const [showBrandLinkPopup, setShowBrandLinkPopup] = useState(false); // ADDED: Brand Link popup state
   const [qrCodesData, setQrCodesData] = useState([]); // NEW STATE
   const [loadingQRCodes, setLoadingQRCodes] = useState(false); // NEW STATE
   const headerRef = useRef(null);
+
+  // Get domain affiliate link from environment variables
+  const domainAffiliateLink = process.env.REACT_APP_DOMAIN_AFFILIATE_LINK || '#';
 
   /**
    * getBackendOrigin
@@ -362,6 +369,30 @@ const Dashboard = () => {
                   <span className="quick-action-text">QR Codes</span>
                 </button>
                 
+                {/* ADDED: Brand Link Button */}
+                <button 
+                  className="quick-action-btn"
+                  onClick={() => setShowBrandLinkPopup(true)}
+                >
+                  <div className="quick-action-icon">
+                    <FaGlobe />
+                  </div>
+                  <span className="quick-action-text">Brand Link</span>
+                </button>
+                
+                {/* ADDED: Buy Domain Button */}
+                <a 
+                  href={domainAffiliateLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="quick-action-btn"
+                >
+                  <div className="quick-action-icon">
+                    <FaShoppingCart />
+                  </div>
+                  <span className="quick-action-text">Buy Domain</span>
+                </a>
+                
                 <div className="quick-action-btn" onClick={() => document.querySelector('.url-shortener-section')?.scrollIntoView({ behavior: 'smooth' })}>
                   <div className="quick-action-icon">
                     <FaLink />
@@ -516,6 +547,11 @@ const Dashboard = () => {
           onClose={handleCloseQRCodesPopup}
           onRefresh={fetchQRCodesData}
         />
+      )}
+
+      {/* ADDED: Brand Link Popup */}
+      {showBrandLinkPopup && (
+        <BrandLinkPopup onClose={() => setShowBrandLinkPopup(false)} />
       )}
     </div>
   );
