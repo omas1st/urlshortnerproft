@@ -1,0 +1,444 @@
+/* TopCitiesList.css - Professional Cities Analytics Component */
+
+.top-cities-list {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.top-cities-list:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Header Styles */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.list-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
+}
+
+.time-range {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+/* Table Styles */
+.cities-table {
+  margin-bottom: 32px;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 80px 2fr 1.5fr 100px 100px 1fr;
+  background: linear-gradient(to right, #f8f9fa, #f1f3f4);
+  padding: 16px 20px;
+  border-bottom: 2px solid #e0e0e0;
+  font-weight: 600;
+  color: #5f6368;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.header-cell {
+  display: flex;
+  align-items: center;
+}
+
+.header-cell.rank {
+  justify-content: center;
+}
+
+/* Table Body */
+.table-body {
+  background: #fff;
+}
+
+.city-row {
+  display: grid;
+  grid-template-columns: 80px 2fr 1.5fr 100px 100px 1fr;
+  padding: 18px 20px;
+  border-bottom: 1px solid #f5f5f5;
+  transition: all 0.2s ease;
+  align-items: center;
+}
+
+.city-row:hover {
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.city-row:last-child {
+  border-bottom: none;
+}
+
+/* Rank Styles */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.rank-1 {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  color: #8b4513;
+}
+
+.rank-2 {
+  background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+  color: #333;
+}
+
+.rank-3 {
+  background: linear-gradient(135deg, #cd7f32, #a0522d);
+  color: white;
+}
+
+.rank-4, .rank-5, .rank-6, .rank-7, .rank-8, .rank-9, .rank-10 {
+  background: #f0f2f5;
+  color: #666;
+}
+
+/* City Cell */
+.city-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.city-icon {
+  color: #4285f4;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.city-name {
+  font-weight: 500;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+}
+
+/* Country Cell */
+.country-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.country-flag {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.country-name {
+  color: #5f6368;
+  font-size: 0.9rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Clicks Cell */
+.click-count {
+  font-weight: 600;
+  color: #1a73e8;
+  font-size: 1rem;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* Percentage Cell */
+.percentage-value {
+  font-weight: 600;
+  color: #34a853;
+  font-size: 1rem;
+  background: rgba(52, 168, 83, 0.1);
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* Bar Cell */
+.bar-container {
+  width: 100%;
+  height: 8px;
+  background: #edf2f7;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Summary Section */
+.cities-summary {
+  margin: 32px 0;
+  padding: 24px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.summary-card:nth-child(1) .summary-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.summary-card:nth-child(2) .summary-icon {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.summary-card:nth-child(3) .summary-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.summary-content h4 {
+  margin: 0 0 6px 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary-value {
+  margin: 0 0 4px 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.summary-label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* Note Section */
+.cities-note {
+  margin-top: 24px;
+  padding: 16px;
+  background: #fff8e1;
+  border-radius: 8px;
+  border-left: 4px solid #ffb300;
+}
+
+.cities-note small {
+  color: #5d4037;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-cities-list {
+    padding: 16px;
+  }
+  
+  .table-header,
+  .city-row {
+    grid-template-columns: 60px 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 12px;
+  }
+  
+  .header-cell.clicks,
+  .header-cell.percentage,
+  .header-cell.bar,
+  .cell.clicks,
+  .cell.percentage,
+  .cell.bar {
+    grid-column: span 3;
+    grid-row: 2;
+  }
+  
+  .list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .city-name,
+  .country-name {
+    font-size: 0.875rem;
+  }
+  
+  .summary-card {
+    padding: 16px;
+  }
+  
+  .summary-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+}
+
+/* Animation for bar loading */
+@keyframes barLoad {
+  from {
+    width: 0;
+  }
+  to {
+    width: var(--final-width);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .top-cities-list {
+    background: #1e1e1e;
+    color: #e0e0e0;
+  }
+  
+  .list-header h3 {
+    color: #f5f5f5;
+  }
+  
+  .cities-table {
+    border-color: #333;
+  }
+  
+  .table-header {
+    background: #2d2d2d;
+    color: #b0b0b0;
+    border-bottom-color: #444;
+  }
+  
+  .city-row:hover {
+    background-color: #2a2a2a;
+  }
+  
+  .city-name {
+    color: #f0f0f0;
+  }
+  
+  .country-name {
+    color: #b0b0b0;
+  }
+  
+  .bar-container {
+    background: #333;
+  }
+  
+  .cities-summary {
+    background: #2d2d2d;
+    border-color: #444;
+  }
+  
+  .summary-card {
+    background: #252525;
+  }
+  
+  .summary-value {
+    color: #f0f0f0;
+  }
+  
+  .summary-label {
+    color: #a0a0a0;
+  }
+  
+  .cities-note {
+    background: #2a2a2a;
+    border-left-color: #ffb300;
+  }
+  
+  .cities-note small {
+    color: #e0e0e0;
+  }
+}
+
+/* Print styles */
+@media print {
+  .top-cities-list {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .city-row:hover {
+    background-color: transparent !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .summary-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd;
+  }
+}

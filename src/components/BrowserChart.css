@@ -1,0 +1,567 @@
+/* BrowserChart.css */
+
+/* ===== BASE STYLES ===== */
+.browser-chart {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.08),
+        0 1px 4px rgba(0, 0, 0, 0.04);
+    padding: 24px;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.browser-chart::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
+    border-radius: 16px 16px 0 0;
+}
+
+.browser-chart:hover {
+    box-shadow: 
+        0 8px 30px rgba(0, 0, 0, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+/* ===== CHART CONTAINER ===== */
+.chart-container {
+    position: relative;
+    height: 350px;
+    margin-bottom: 32px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+/* Chart.js Canvas Styling */
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ===== CHART TITLE STYLING ===== */
+.chart-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+    position: relative;
+}
+
+.chart-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    border-radius: 1px;
+}
+
+/* ===== BROWSER STATS GRID ===== */
+.browser-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .browser-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .browser-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+/* ===== INDIVIDUAL BROWSER STAT ===== */
+.browser-stat {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.browser-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(241, 245, 249, 0.4));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.browser-stat:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.browser-stat:hover::before {
+    opacity: 1;
+}
+
+/* Browser Header (Icon + Name) */
+.browser-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.browser-header svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.browser-stat:hover .browser-header svg {
+    transform: scale(1.2);
+}
+
+.browser-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: -0.01em;
+}
+
+/* Browser Numbers (Count + Percentage) */
+.browser-numbers {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.browser-count {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1;
+    font-feature-settings: "tnum";
+}
+
+.browser-percentage {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    background: #f8fafc;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+/* ===== BROWSER-SPECIFIC COLOR THEMES ===== */
+/* Chrome */
+.browser-stat:nth-child(1) {
+    border-left: 3px solid #3b82f6;
+}
+
+.browser-stat:nth-child(1):hover {
+    background: linear-gradient(to right, rgba(59, 130, 246, 0.02), rgba(59, 130, 246, 0.05));
+}
+
+.browser-stat:nth-child(1) .browser-percentage {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+/* Safari */
+.browser-stat:nth-child(2) {
+    border-left: 3px solid #10b981;
+}
+
+.browser-stat:nth-child(2):hover {
+    background: linear-gradient(to right, rgba(16, 185, 129, 0.02), rgba(16, 185, 129, 0.05));
+}
+
+.browser-stat:nth-child(2) .browser-percentage {
+    background: #f0fdf4;
+    color: #047857;
+}
+
+/* Firefox */
+.browser-stat:nth-child(3) {
+    border-left: 3px solid #f59e0b;
+}
+
+.browser-stat:nth-child(3):hover {
+    background: linear-gradient(to right, rgba(245, 158, 11, 0.02), rgba(245, 158, 11, 0.05));
+}
+
+.browser-stat:nth-child(3) .browser-percentage {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+/* Edge */
+.browser-stat:nth-child(4) {
+    border-left: 3px solid #8b5cf6;
+}
+
+.browser-stat:nth-child(4):hover {
+    background: linear-gradient(to right, rgba(139, 92, 246, 0.02), rgba(139, 92, 246, 0.05));
+}
+
+.browser-stat:nth-child(4) .browser-percentage {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+/* Others */
+.browser-stat:nth-child(5) {
+    border-left: 3px solid #6b7280;
+}
+
+.browser-stat:nth-child(5):hover {
+    background: linear-gradient(to right, rgba(107, 114, 128, 0.02), rgba(107, 114, 128, 0.05));
+}
+
+.browser-stat:nth-child(5) .browser-percentage {
+    background: #f9fafb;
+    color: #4b5563;
+}
+
+/* ===== EMPTY STATE ===== */
+.browser-chart.empty {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-color: #e2e8f0;
+}
+
+.browser-chart.empty .chart-container {
+    background: transparent;
+    border: 2px dashed #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state {
+    text-align: center;
+    color: #64748b;
+    padding: 40px 20px;
+}
+
+.empty-state svg {
+    width: 48px;
+    height: 48px;
+    color: #cbd5e1;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #94a3b8;
+    max-width: 300px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+/* ===== TOOLTIP STYLING (Override Chart.js) ===== */
+.chartjs-tooltip {
+    background: white !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        0 2px 4px rgba(0, 0, 0, 0.06) !important;
+    padding: 12px 16px !important;
+    font-family: inherit !important;
+}
+
+.chartjs-tooltip-body {
+    margin: 0 !important;
+}
+
+.chartjs-tooltip-body-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    color: #334155 !important;
+    font-weight: 500 !important;
+}
+
+.chartjs-tooltip-color {
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 3px !important;
+    border: none !important;
+}
+
+/* ===== LEGEND STYLING (Override Chart.js) ===== */
+.chartjs-legend {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 0;
+}
+
+.chartjs-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    padding: 6px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.chartjs-legend-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.chartjs-legend-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 640px) {
+    .browser-chart {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .chart-container {
+        height: 300px;
+        padding: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .browser-stat {
+        padding: 14px;
+    }
+    
+    .browser-count {
+        font-size: 18px;
+    }
+    
+    .browser-name {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 380px) {
+    .browser-chart {
+        padding: 12px;
+    }
+    
+    .chart-container {
+        height: 280px;
+        padding: 12px;
+    }
+    
+    .browser-stats {
+        gap: 10px;
+    }
+    
+    .browser-stat {
+        padding: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .browser-numbers {
+        align-items: flex-start;
+    }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+    .browser-chart {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-color: rgba(71, 85, 105, 0.4);
+        color: #e2e8f0;
+    }
+    
+    .browser-chart::before {
+        background: linear-gradient(90deg, #60a5fa, #a78bfa, #34d399);
+    }
+    
+    .chart-container {
+        background: #1e293b;
+        border-color: rgba(71, 85, 105, 0.6);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .browser-stat {
+        background: #1e293b;
+        border-color: rgba(71, 85, 105, 0.6);
+    }
+    
+    .browser-name {
+        color: #e2e8f0;
+    }
+    
+    .browser-count {
+        color: #f8fafc;
+    }
+    
+    .browser-percentage {
+        background: rgba(30, 41, 59, 0.8);
+        color: #cbd5e1;
+    }
+    
+    /* Dark mode tooltip */
+    .chartjs-tooltip {
+        background: #1e293b !important;
+        border-color: rgba(71, 85, 105, 0.8) !important;
+        color: #e2e8f0 !important;
+    }
+    
+    /* Browser-specific dark mode adjustments */
+    .browser-stat:nth-child(1):hover {
+        background: linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.2));
+    }
+    
+    .browser-stat:nth-child(2):hover {
+        background: linear-gradient(to right, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2));
+    }
+    
+    .browser-stat:nth-child(3):hover {
+        background: linear-gradient(to right, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.2));
+    }
+    
+    .browser-stat:nth-child(4):hover {
+        background: linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(139, 92, 246, 0.2));
+    }
+    
+    .browser-stat:nth-child(5):hover {
+        background: linear-gradient(to right, rgba(107, 114, 128, 0.1), rgba(107, 114, 128, 0.2));
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .browser-chart {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    .browser-chart::before {
+        height: 3px;
+        background: #333;
+    }
+    
+    .browser-stat:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.browser-chart {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.browser-stat {
+    animation: fadeInUp 0.4s ease-out;
+    animation-fill-mode: both;
+}
+
+/* Stagger animation for stats */
+.browser-stat:nth-child(1) { animation-delay: 0.1s; }
+.browser-stat:nth-child(2) { animation-delay: 0.2s; }
+.browser-stat:nth-child(3) { animation-delay: 0.3s; }
+.browser-stat:nth-child(4) { animation-delay: 0.4s; }
+.browser-stat:nth-child(5) { animation-delay: 0.5s; }
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+    .browser-chart,
+    .browser-stat,
+    .browser-header svg {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .browser-chart:hover {
+        transform: none;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .browser-chart {
+        border: 2px solid currentColor;
+    }
+    
+    .browser-stat {
+        border: 1px solid currentColor;
+    }
+    
+    .browser-chart::before {
+        height: 4px;
+        background: currentColor;
+    }
+}
+
+/* ===== PERFORMANCE OPTIMIZATION ===== */
+.browser-stat {
+    will-change: transform, box-shadow;
+}
+
+.chart-container {
+    contain: paint;
+}

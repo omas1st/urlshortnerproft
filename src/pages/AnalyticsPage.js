@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import AnalyticsChart from '../components/AnalyticsChart';
+import BrowserChart from '../components/BrowserChart';
+import OSTable from '../components/OSTable';
+import ReferrerChart from '../components/ReferrerChart';
+import PeakHourChart from '../components/PeakHourChart';
+import TopCitiesList from '../components/TopCitiesList';
+import TopLinksTable from '../components/TopLinksTable';
 import {
   FaArrowLeft,
   FaChartBar,
@@ -21,7 +27,11 @@ import {
   FaScroll,
   FaHourglassHalf,
   FaExternalLinkAlt,
-  FaCalendarAlt
+  FaCalendarAlt,
+  FaChrome,
+  FaHourglass,
+  FaLink,
+  FaCity
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -48,9 +58,61 @@ const AnalyticsPage = () => {
   const [error, setError] = useState('');
   const [retryCount, setRetryCount] = useState(0);
   const [detailedMetrics, setDetailedMetrics] = useState({});
+  const [newChartData, setNewChartData] = useState({
+    browserData: null,
+    osData: null,
+    referrerData: null,
+    peakHourData: null,
+    topCitiesData: null,
+    topLinksData: null
+  });
 
   const activeRequest = useRef(null);
   const MAX_RETRIES = 2;
+
+  // Wrap categorizeReferrers in useCallback to stabilize the reference
+  const categorizeReferrers = useCallback((referrers) => {
+    const socialPlatforms = ['facebook', 'twitter', 'whatsapp', 'instagram', 'linkedin', 'pinterest', 'tiktok', 'reddit'];
+    const searchEngines = ['google', 'bing', 'yahoo', 'duckduckgo', 'baidu', 'yandex'];
+    
+    const categories = {
+      social: { total: 0, details: {} },
+      search: { total: 0, details: {} },
+      email: { total: 0, details: {} },
+      direct: { total: 0, details: {} },
+      others: { total: 0, details: {} }
+    };
+    
+    if (!Array.isArray(referrers)) return categories;
+    
+    referrers.forEach(ref => {
+      const source = ref._id ? ref._id.toLowerCase() : '';
+      const count = ref.count || 0;
+      
+      if (source === 'direct' || source === '') {
+        categories.direct.total += count;
+        categories.direct.details[source] = (categories.direct.details[source] || 0) + count;
+      } 
+      else if (socialPlatforms.some(platform => source.includes(platform))) {
+        categories.social.total += count;
+        categories.social.details[source] = (categories.social.details[source] || 0) + count;
+      }
+      else if (searchEngines.some(engine => source.includes(engine))) {
+        categories.search.total += count;
+        categories.search.details[source] = (categories.search.details[source] || 0) + count;
+      }
+      else if (source.includes('mail') || source.includes('email')) {
+        categories.email.total += count;
+        categories.email.details[source] = (categories.email.details[source] || 0) + count;
+      }
+      else {
+        categories.others.total += count;
+        categories.others.details[source] = (categories.others.details[source] || 0) + count;
+      }
+    });
+    
+    return categories;
+  }, []); // Empty dependency array since it doesn't depend on any state or props
 
   // Fetch user URLs
   const fetchUserUrls = useCallback(async () => {
@@ -335,9 +397,66 @@ const AnalyticsPage = () => {
         parseFloat(detailedMetrics.pagesPerSession) : 1.0
     };
 
+    // ---------- New chart data ----------
+    // Browser data
+    if (raw.browserDistribution) {
+      normalized.browserDistribution = raw.browserDistribution;
+    } else if (raw.browserData) {
+      normalized.browserDistribution = raw.browserData;
+    } else if (raw.browsers) {
+      normalized.browserDistribution = raw.browsers;
+    }
+    
+    // OS data
+    if (raw.osDistribution) {
+      normalized.osDistribution = raw.osDistribution;
+    } else if (raw.osData) {
+      normalized.osDistribution = raw.osData;
+    } else if (raw.operatingSystems) {
+      normalized.osDistribution = raw.operatingSystems;
+    }
+    
+    // Referrer categories
+    if (raw.referrerCategories) {
+      normalized.referrerCategories = raw.referrerCategories;
+    } else if (raw.referrers) {
+      // Convert raw referrer data to categories
+      const referrerData = Array.isArray(raw.referrers) ? raw.referrers : [];
+      normalized.referrerCategories = categorizeReferrers(referrerData);
+    }
+    
+    // Peak hour data - handle both formats
+    if (raw.peakHourData) {
+      normalized.peakHourData = raw.peakHourData;
+    } else if (raw.peakHours) {
+      normalized.peakHourData = raw.peakHours;
+    }
+    
+    // Top cities
+    if (raw.topCities) {
+      normalized.topCities = raw.topCities;
+    } else if (raw.cities) {
+      normalized.topCities = raw.cities;
+    }
+    
+    // Top performing links
+    if (raw.topLinks) {
+      normalized.topLinks = raw.topLinks;
+    } else if (isOverall && Array.isArray(raw.urls)) {
+      // For overall analytics, use URLs list as top links
+      normalized.topLinks = raw.urls.slice(0, 10).map(url => ({
+        _id: url._id,
+        shortId: url.shortId,
+        alias: url.customName || url.shortId,
+        destinationUrl: url.destinationUrl,
+        clicks: url.clicks || 0,
+        previousClicks: 0 // We'd need historical data for this
+      }));
+    }
+
     console.log('Normalized analytics data:', normalized);
     return normalized;
-  }, []);
+  }, [categorizeReferrers]);
 
   // Fetch analytics for a specific url
   const fetchAnalyticsByUrl = useCallback(async (id) => {
@@ -384,6 +503,49 @@ const AnalyticsPage = () => {
         setDetailedMetrics(body.detailedMetrics);
       } else if (rawAnalytics?.detailedMetrics) {
         setDetailedMetrics(rawAnalytics.detailedMetrics);
+      }
+      
+      // Extract new chart data
+      if (body?.analytics?.browserDistribution) {
+        setNewChartData(prev => ({
+          ...prev,
+          browserData: body.analytics.browserDistribution
+        }));
+      }
+      
+      if (body?.analytics?.osDistribution) {
+        setNewChartData(prev => ({
+          ...prev,
+          osData: body.analytics.osDistribution
+        }));
+      }
+      
+      if (body?.analytics?.referrerCategories) {
+        setNewChartData(prev => ({
+          ...prev,
+          referrerData: body.analytics.referrerCategories
+        }));
+      }
+      
+      if (body?.analytics?.peakHourData) {
+        setNewChartData(prev => ({
+          ...prev,
+          peakHourData: body.analytics.peakHourData
+        }));
+      }
+      
+      if (body?.analytics?.topCities) {
+        setNewChartData(prev => ({
+          ...prev,
+          topCitiesData: body.analytics.topCities
+        }));
+      }
+      
+      if (body?.analytics?.topLinks) {
+        setNewChartData(prev => ({
+          ...prev,
+          topLinksData: body.analytics.topLinks
+        }));
       }
 
       // set selectedUrl if present
@@ -459,6 +621,49 @@ const AnalyticsPage = () => {
         setDetailedMetrics(rawAnalytics.detailedMetrics);
       } else if (rawAnalytics?.analytics?.detailedMetrics) {
         setDetailedMetrics(rawAnalytics.analytics.detailedMetrics);
+      }
+      
+      // Extract new chart data
+      if (rawAnalytics?.browserDistribution) {
+        setNewChartData(prev => ({
+          ...prev,
+          browserData: rawAnalytics.browserDistribution
+        }));
+      }
+      
+      if (rawAnalytics?.osDistribution) {
+        setNewChartData(prev => ({
+          ...prev,
+          osData: rawAnalytics.osDistribution
+        }));
+      }
+      
+      if (rawAnalytics?.referrerCategories) {
+        setNewChartData(prev => ({
+          ...prev,
+          referrerData: rawAnalytics.referrerCategories
+        }));
+      }
+      
+      if (rawAnalytics?.peakHourData) {
+        setNewChartData(prev => ({
+          ...prev,
+          peakHourData: rawAnalytics.peakHourData
+        }));
+      }
+      
+      if (rawAnalytics?.topCities) {
+        setNewChartData(prev => ({
+          ...prev,
+          topCitiesData: rawAnalytics.topCities
+        }));
+      }
+      
+      if (rawAnalytics?.topLinks) {
+        setNewChartData(prev => ({
+          ...prev,
+          topLinksData: rawAnalytics.topLinks
+        }));
       }
       
       if (res.data && !res.data.success && res.data.message) {
@@ -818,8 +1023,7 @@ const AnalyticsPage = () => {
                   <p>Unique Visitors</p>
                 </div>
               </div>
-
-              {/* Hidden but still present in DOM: Returning Visitors */}
+              {/* Hidden visually but kept in DOM */}
               <div className="stat-card hidden-stat">
                 <div className="stat-icon"><FaUserClock /></div>
                 <div className="stat-info">
@@ -827,8 +1031,7 @@ const AnalyticsPage = () => {
                   <p>Returning Visitors</p>
                 </div>
               </div>
-
-              {/* Hidden but still present in DOM: Conversion Rate */}
+              {/* Hidden visually but kept in DOM */}
               <div className="stat-card hidden-stat">
                 <div className="stat-icon"><FaChartBar /></div>
                 <div className="stat-info">
@@ -839,9 +1042,30 @@ const AnalyticsPage = () => {
             </div>
           </section>
 
+          {/* Top Performing Links Table Section */}
+          {newChartData.topLinksData && (
+            <section className="top-links-section">
+              <h2 className="section-title"><FaLink /> Top Performing Links</h2>
+              <TopLinksTable 
+                data={newChartData.topLinksData}
+                timeRange={getDisplayTimeRange()}
+                isOverall={!urlId}
+                selectedUrlId={urlId}
+              />
+            </section>
+          )}
+
           <section className="charts-section">
             <div className="charts-grid">
-              {/* reordered so Clicks Over Time comes after Device Distribution */}
+              <div className="chart-card">
+                <AnalyticsChart 
+                  data={analyticsData?.clicksOverTime || { labels: [], values: [] }} 
+                  type="clicks" 
+                  title="Clicks Over Time" 
+                  timeRange={getDisplayTimeRange()}
+                />
+              </div>
+
               <div className="chart-card">
                 <AnalyticsChart 
                   data={analyticsData?.topCountries?.rawData || analyticsData?.topCountries || { countries: [], visits: [] }} 
@@ -862,15 +1086,6 @@ const AnalyticsPage = () => {
 
               <div className="chart-card">
                 <AnalyticsChart 
-                  data={analyticsData?.clicksOverTime || { labels: [], values: [] }} 
-                  type="clicks" 
-                  title="Clicks Over Time" 
-                  timeRange={getDisplayTimeRange()}
-                />
-              </div>
-
-              <div className="chart-card">
-                <AnalyticsChart 
                   data={analyticsData?.engagement || { bounced: 0, engaged: 0 }} 
                   type="bounce" 
                   title="Engagement Rate" 
@@ -880,7 +1095,64 @@ const AnalyticsPage = () => {
             </div>
           </section>
 
-          <section className="detailed-metrics">
+          {/* Browser Usage Section */}
+          {newChartData.browserData && (
+            <section className="browser-section">
+              <h2 className="section-title"><FaChrome /> Browser Usage</h2>
+              <BrowserChart 
+                data={newChartData.browserData}
+                timeRange={getDisplayTimeRange()}
+                totalClicks={analyticsData?.totalClicks || 0}
+              />
+            </section>
+          )}
+
+          {/* Operating System Section */}
+          {newChartData.osData && (
+            <section className="os-section">
+              <h2 className="section-title"><FaDesktop /> Operating Systems</h2>
+              <OSTable 
+                data={newChartData.osData}
+                timeRange={getDisplayTimeRange()}
+              />
+            </section>
+          )}
+
+          {/* Referrer Categories Section */}
+          {newChartData.referrerData && (
+            <section className="referrer-section">
+              <h2 className="section-title"><FaExternalLinkAlt /> Traffic Sources</h2>
+              <ReferrerChart 
+                data={newChartData.referrerData}
+                timeRange={getDisplayTimeRange()}
+              />
+            </section>
+          )}
+
+          {/* Peak Hour Section */}
+          {newChartData.peakHourData && (
+            <section className="peak-hour-section">
+              <h2 className="section-title"><FaHourglass /> Daily Traffic Pattern</h2>
+              <PeakHourChart 
+                data={newChartData.peakHourData}
+                timeRange={getDisplayTimeRange()}
+              />
+            </section>
+          )}
+
+          {/* Top Cities Section - hidden visually but kept in DOM */}
+          {newChartData.topCitiesData && (
+            <section className="top-cities-section hidden-stat">
+              <h2 className="section-title"><FaCity /> Top Cities</h2>
+              <TopCitiesList 
+                data={newChartData.topCitiesData}
+                timeRange={getDisplayTimeRange()}
+              />
+            </section>
+          )}
+
+          {/* Detailed Metrics - hidden visually but kept in DOM */}
+          <section className="detailed-metrics hidden-stat">
             <h2 className="section-title"><FaChartBar /> Detailed Metrics</h2>
             <div className="metrics-grid">
               <div className="metric-card">
