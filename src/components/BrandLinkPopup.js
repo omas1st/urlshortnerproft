@@ -114,14 +114,38 @@ const BrandLinkPopup = ({ onClose }) => {
     });
   };
 
+  const getFrontendOrigin = () => {
+    // Use frontend URL for display
+    if (process.env.REACT_APP_WEBSITE_URL) {
+      return process.env.REACT_APP_WEBSITE_URL.replace(/\/$/, '');
+    }
+    try {
+      return window.location.origin;
+    } catch (e) {
+      return 'http://localhost:3000';
+    }
+  };
+
   const getBackendOrigin = () => {
-    if (process.env.REACT_APP_BACKEND_URL) return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
+    // This is only used for DNS configuration (step 3)
+    if (process.env.REACT_APP_BACKEND_URL) {
+      return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
+    }
     try {
       const winOrigin = window.location.origin;
       return winOrigin.includes(':3000') ? winOrigin.replace(':3000', ':5000') : winOrigin;
     } catch (e) {
       return 'http://localhost:5000';
     }
+  };
+
+  // Get short URL without /s/ prefix
+  const getShortUrl = (urlObj) => {
+    if (!urlObj) return '';
+    const frontendOrigin = getFrontendOrigin();
+    if (urlObj.customName) return `${frontendOrigin}/${urlObj.customName}`;
+    if (urlObj.shortId) return `${frontendOrigin}/${urlObj.shortId}`;
+    return '';
   };
 
   // Step 1: Select URL
@@ -151,7 +175,7 @@ const BrandLinkPopup = ({ onClose }) => {
                 <div className="brand-url-short">
                   <FaLink />
                   <span className="brand-short-url">
-                    {getBackendOrigin()}/s/{url.shortId}
+                    {getShortUrl(url)}
                   </span>
                 </div>
                 <div className="brand-url-destination">
@@ -190,7 +214,7 @@ const BrandLinkPopup = ({ onClose }) => {
       <div className="brand-selected-url-preview">
         <div className="brand-preview-label">Selected URL:</div>
         <div className="brand-preview-value">
-          {getBackendOrigin()}/s/{selectedUrl?.shortId}
+          {getShortUrl(selectedUrl)}
         </div>
       </div>
       
@@ -361,7 +385,7 @@ const BrandLinkPopup = ({ onClose }) => {
           <div className="brand-info-card">
             <div className="brand-info-label">Original URL</div>
             <div className="brand-info-value">
-              {getBackendOrigin()}/s/{selectedUrl?.shortId}
+              {getShortUrl(selectedUrl)}
             </div>
           </div>
           
