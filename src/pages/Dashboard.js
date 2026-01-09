@@ -46,33 +46,17 @@ const Dashboard = () => {
   const domainAffiliateLink = process.env.REACT_APP_DOMAIN_AFFILIATE_LINK || '#';
 
   /**
-   * getBackendOrigin
-   * Prefer explicit REACT_APP_BACKEND_URL, otherwise attempt sensible dev fallback
-   */
-  const getBackendOrigin = useCallback(() => {
-    try {
-      if (process.env.REACT_APP_BACKEND_URL) {
-        return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
-      }
-      const origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : 'http://localhost:3000';
-      // If frontend is at :3000, assume backend at :5000 (dev fallback)
-      if (origin.includes(':3000')) return origin.replace(':3000', ':5000');
-      return origin; // best-effort fallback
-    } catch (e) {
-      return 'http://localhost:5000';
-    }
-  }, []);
-
-  /**
    * getShortUrl
-   * Prefer server provided shortUrl, otherwise construct using backend origin + shortId
+   * Use frontend URL without /s/ prefix
    */
   const getShortUrl = useCallback((url) => {
     if (!url) return '';
-    if (url.shortUrl) return url.shortUrl;
-    if (url.shortId) return `${getBackendOrigin()}/s/${url.shortId}`;
+    const frontendUrl = process.env.REACT_APP_WEBSITE_URL || 'http://localhost:3000';
+    if (url.shortUrl) return url.shortUrl;  // This will use the updated model virtual
+    if (url.customName) return `${frontendUrl}/${url.customName}`;
+    if (url.shortId) return `${frontendUrl}/${url.shortId}`;
     return '';
-  }, [getBackendOrigin]);
+  }, []);
 
   /**
    * fetchDashboardData
@@ -127,8 +111,8 @@ const Dashboard = () => {
 
       // Defensive: ensure each url has a shortUrl field client-side
       const normalized = mapped.map(u => {
-        if (!u.shortUrl && u.shortId) {
-          return { ...u, shortUrl: `${getBackendOrigin()}/s/${u.shortId}` };
+        if (!u.shortUrl && (u.shortId || u.customName)) {
+          return { ...u, shortUrl: getShortUrl(u) };
         }
         return u;
       });
@@ -152,7 +136,7 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [getBackendOrigin]);
+  }, [getShortUrl]);
 
   /**
    * fetchQRCodesData - NEW FUNCTION
@@ -248,7 +232,7 @@ const Dashboard = () => {
    * Ensure newly generated URL has shortUrl (if backend didn't provide it)
    */
   const handleUrlGenerated = useCallback((newUrl) => {
-    const normalized = newUrl.shortUrl ? newUrl : { ...newUrl, shortUrl: (newUrl.shortId ? `${getBackendOrigin()}/s/${newUrl.shortId}` : '') };
+    const normalized = newUrl.shortUrl ? newUrl : { ...newUrl, shortUrl: getShortUrl(newUrl) };
     setRecentUrls(prev => [normalized, ...prev.slice(0, 4)]);
     setStats(prev => ({
       ...prev,
@@ -264,7 +248,7 @@ const Dashboard = () => {
         qrCodeData: newUrl.qrCodeData || null
       }, ...prev]);
     }
-  }, [getBackendOrigin, getShortUrl]);
+  }, [getShortUrl]);
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {

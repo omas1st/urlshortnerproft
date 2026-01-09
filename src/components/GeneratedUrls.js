@@ -49,6 +49,16 @@ const CopyButton = ({ text, className = '', children }) => {
   );
 };
 
+const getShortUrl = (urlObj) => {
+  if (!urlObj) return '';
+  const frontendUrl = process.env.REACT_APP_WEBSITE_URL || 'http://localhost:3000';
+  // Use the shortUrl from backend if available, otherwise construct it
+  if (urlObj.shortUrl) return urlObj.shortUrl;
+  if (urlObj.customName) return `${frontendUrl}/${urlObj.customName}`;
+  if (urlObj.shortId) return `${frontendUrl}/${urlObj.shortId}`;
+  return '';
+};
+
 const GeneratedUrls = () => {
   const [urls, setUrls] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,21 +114,15 @@ const GeneratedUrls = () => {
     }
   };
 
-  const getBackendOrigin = () => {
-    if (process.env.REACT_APP_BACKEND_URL) return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
+  const getFrontendOrigin = () => {
+    // Use frontend URL for display, backend for redirects
+    if (process.env.REACT_APP_WEBSITE_URL) return process.env.REACT_APP_WEBSITE_URL.replace(/\/$/, '');
     try {
       const winOrigin = window.location.origin;
-      return winOrigin.includes(':3000') ? winOrigin.replace(':3000', ':5000') : winOrigin;
+      return winOrigin;  // Use same origin (frontend) for display
     } catch (e) {
-      return 'http://localhost:5000';
+      return 'http://localhost:3000';
     }
-  };
-
-  const getShortUrl = (urlObj) => {
-    if (!urlObj) return '';
-    if (urlObj.shortUrl) return urlObj.shortUrl;
-    if (urlObj.shortId) return `${getBackendOrigin()}/s/${urlObj.shortId}`;
-    return '';
   };
 
   const deleteUrl = async (urlId) => {
@@ -325,6 +329,7 @@ const GeneratedUrls = () => {
             <tbody>
               {urls.map(url => {
                 const short = getShortUrl(url);
+                const frontendOrigin = getFrontendOrigin();
                 return (
                   <tr key={url._id}>
                     <td className="short-url-cell">
@@ -335,10 +340,10 @@ const GeneratedUrls = () => {
                           rel="noopener noreferrer"
                           className="short-url-link"
                         >
-                          {url.customName ? `${getBackendOrigin()}/s/${url.customName}` : short}
+                          {url.customName ? `${frontendOrigin}/${url.customName}` : short}
                         </a>
                         <CopyButton
-                          text={url.customName ? `${getBackendOrigin()}/s/${url.customName}` : short}
+                          text={url.customName ? `${frontendOrigin}/${url.customName}` : short}
                           className="small-copy-btn"
                         />
                       </div>

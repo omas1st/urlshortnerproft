@@ -51,18 +51,9 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
     }
   };
 
-  const getBackendOrigin = () => {
-    if (process.env.REACT_APP_BACKEND_URL) return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
-    try {
-      const winOrigin = window.location.origin;
-      return winOrigin.includes(':3000') ? winOrigin.replace(':3000', ':5000') : winOrigin;
-    } catch (e) {
-      return 'http://localhost:5000';
-    }
-  };
-
-  const constructShortUrl = (shortId) => {
-    return `${getBackendOrigin()}/s/${shortId}`;
+  const constructShortUrl = (shortId, customName) => {
+    const frontendUrl = process.env.REACT_APP_WEBSITE_URL || 'http://localhost:3000';
+    return `${frontendUrl}/${customName || shortId}`;  // Without /s/ prefix
   };
 
   const handleGenerate = async () => {
@@ -103,8 +94,8 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
 
       const generatedData = response.data.url || response.data;
       // ensure we have a usable shortUrl fallback on the client
-      if (!generatedData.shortUrl && generatedData.shortId) {
-        generatedData.shortUrl = constructShortUrl(generatedData.shortId);
+      if (!generatedData.shortUrl && (generatedData.shortId || generatedData.customName)) {
+        generatedData.shortUrl = constructShortUrl(generatedData.shortId, generatedData.customName);
       }
 
       setGeneratedUrl(generatedData);
@@ -282,15 +273,15 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
                   <span className="label">Short URL:</span>
                   <div className="short-url-display">
                     <a 
-                      href={generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId)}
+                      href={generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId, generatedUrl.customName)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="short-link"
                     >
-                      {generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId)}
+                      {generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId, generatedUrl.customName)}
                     </a>
                     <button
-                      onClick={() => copyToClipboard(generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId))}
+                      onClick={() => copyToClipboard(generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId, generatedUrl.customName))}
                       className="copy-btn"
                     >
                       {copied ? <FaCheck /> : <FaCopy />}
@@ -351,13 +342,13 @@ const UrlShortener = ({ onGenerate, isDashboard = false }) => {
               
               <div className="action-buttons">
                 <button
-                  onClick={() => copyToClipboard(generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId))}
+                  onClick={() => copyToClipboard(generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId, generatedUrl.customName))}
                   className="primary-btn"
                 >
                   <FaCopy /> Copy Short Link
                 </button>
                 <button
-                  onClick={() => window.open(generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId), '_blank')}
+                  onClick={() => window.open(generatedUrl.shortUrl || constructShortUrl(generatedUrl.shortId, generatedUrl.customName), '_blank')}
                   className="secondary-btn"
                 >
                   <FaLink /> Visit Short Link

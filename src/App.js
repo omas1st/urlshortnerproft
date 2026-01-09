@@ -10,6 +10,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import AdminPanel from './pages/AdminPanel';
 import UserManagement from './pages/UserManagement';
 import AdminAnalytics from './pages/AdminAnalytics';
+import RedirectHandler from './pages/RedirectHandler';
 import { useAuth } from './context/AuthContext';
 import './App.css';
 
@@ -122,6 +123,8 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            {/* Add this as the LAST route in your Routes component */}
+            <Route path="/:shortId" element={<RedirectHandler />} />
           </Routes>
         </div>
       </div>
