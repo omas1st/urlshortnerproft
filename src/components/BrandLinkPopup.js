@@ -14,6 +14,25 @@ const BrandLinkPopup = ({ onClose }) => {
   const [verifying, setVerifying] = useState(false);
   const [userDomains, setUserDomains] = useState([]);
   const [copied, setCopied] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile and prevent body scrolling
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // Prevent body scroll when popup is open
+    document.body.classList.add('no-scroll');
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      document.body.classList.remove('no-scroll');
+    };
+  }, []);
 
   // Fetch user's URLs
   useEffect(() => {
@@ -146,6 +165,12 @@ const BrandLinkPopup = ({ onClose }) => {
     if (urlObj.customName) return `${frontendOrigin}/${urlObj.customName}`;
     if (urlObj.shortId) return `${frontendOrigin}/${urlObj.shortId}`;
     return '';
+  };
+
+  // Handle close with body scroll restoration
+  const handleClose = () => {
+    document.body.classList.remove('no-scroll');
+    onClose();
   };
 
   // Step 1: Select URL
@@ -411,13 +436,13 @@ const BrandLinkPopup = ({ onClose }) => {
   );
 
   return (
-    <div className="brand-link-popup-overlay">
-      <div className="brand-link-popup">
+    <div className={`brand-link-popup-overlay ${isMobile ? 'mobile-fullscreen-overlay' : ''}`}>
+      <div className={`brand-link-popup ${isMobile ? 'mobile-fullscreen' : ''}`}>
         <div className="brand-popup-header">
           <h2>
             <FaGlobe /> Brand Your Link with Custom Domain
           </h2>
-          <button className="brand-close-btn" onClick={onClose}>
+          <button className="brand-close-btn" onClick={handleClose}>
             <FaTimes />
           </button>
         </div>
@@ -495,7 +520,7 @@ const BrandLinkPopup = ({ onClose }) => {
             {step === 4 && (
               <button
                 className="brand-btn-primary"
-                onClick={onClose}
+                onClick={handleClose}
               >
                 Finish
               </button>

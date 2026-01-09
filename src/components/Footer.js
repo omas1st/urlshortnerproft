@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
-import { FaQuestionCircle, FaQrcode, FaLink, FaPaperPlane, FaTimes } from 'react-icons/fa';
+import { 
+  FaQuestionCircle, 
+  FaQrcode, 
+  FaLink, 
+  FaPaperPlane, 
+  FaTimes,
+  FaEnvelope,
+  FaFacebook,
+  FaInstagram,
+  FaLinkedin,
+  FaTwitter,
+  FaGithub,
+  FaYoutube
+} from 'react-icons/fa';
 import api from '../services/api'; // Use the configured axios instance
 import toast from 'react-hot-toast';
 import './Footer.css';
@@ -8,6 +21,17 @@ const Footer = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [helpMessage, setHelpMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Social media links from environment variables
+  const socialLinks = {
+    gmail: process.env.REACT_APP_GMAIL_LINK || `mailto:${process.env.REACT_APP_ADMIN_EMAIL || 'omas7th@gmail.com'}`,
+    facebook: process.env.REACT_APP_FACEBOOK_LINK || 'https://facebook.com',
+    instagram: process.env.REACT_APP_INSTAGRAM_LINK || 'https://instagram.com',
+    linkedin: process.env.REACT_APP_LINKEDIN_LINK || 'https://linkedin.com',
+    twitter: process.env.REACT_APP_TWITTER_LINK || 'https://twitter.com',
+    github: process.env.REACT_APP_GITHUB_LINK || 'https://github.com',
+    youtube: process.env.REACT_APP_YOUTUBE_LINK || 'https://youtube.com'
+  };
 
   const handleHelpSubmit = async (e) => {
     e.preventDefault();
@@ -137,6 +161,76 @@ const Footer = () => {
                 </form>
               </div>
             )}
+          </div>
+        </div>
+        
+        {/* Social Media Section */}
+        <div className="social-media-section">
+          <h3>Connect With Us</h3>
+          <div className="social-icons">
+            <a 
+              href={socialLinks.gmail} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="social-icon"
+              aria-label="Gmail"
+            >
+              <FaEnvelope />
+            </a>
+            <a 
+              href={socialLinks.facebook} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="social-icon"
+              aria-label="Facebook"
+            >
+              <FaFacebook />
+            </a>
+            <a 
+              href={socialLinks.instagram} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="social-icon"
+              aria-label="Instagram"
+            >
+              <FaInstagram />
+            </a>
+            <a 
+              href={socialLinks.linkedin} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="social-icon"
+              aria-label="LinkedIn"
+            >
+              <FaLinkedin />
+            </a>
+            <a 
+              href={socialLinks.twitter} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="social-icon"
+              aria-label="Twitter"
+            >
+              <FaTwitter />
+            </a>
+            <a 
+              href={socialLinks.github} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="social-icon"
+              aria-label="GitHub"
+            >
+              <FaGithub />
+            </a>
+            <a 
+              href={socialLinks.youtube} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="social-icon"
+              aria-label="YouTube"
+            >
+              <FaYoutube />
+            </a>
           </div>
         </div>
         
@@ -373,10 +467,86 @@ const Footer = () => {
           to { transform: rotate(360deg); }
         }
         
+        /* Social Media Styles */
+        .social-media-section {
+          text-align: center;
+          margin-bottom: 40px;
+          padding: 30px 0;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .social-media-section h3 {
+          margin-bottom: 20px;
+          font-size: 1.5rem;
+          color: white;
+        }
+        
+        .social-icons {
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+        
+        .social-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 50px;
+          height: 50px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 50%;
+          color: white;
+          font-size: 1.5rem;
+          transition: all 0.3s ease;
+          border: 2px solid transparent;
+        }
+        
+        .social-icon:hover {
+          background: white;
+          transform: translateY(-5px);
+          border-color: white;
+        }
+        
+        .social-icon:nth-child(1):hover { /* Gmail */
+          color: #D44638;
+          background: white;
+        }
+        
+        .social-icon:nth-child(2):hover { /* Facebook */
+          color: #1877F2;
+          background: white;
+        }
+        
+        .social-icon:nth-child(3):hover { /* Instagram */
+          color: #E4405F;
+          background: white;
+        }
+        
+        .social-icon:nth-child(4):hover { /* LinkedIn */
+          color: #0A66C2;
+          background: white;
+        }
+        
+        .social-icon:nth-child(5):hover { /* Twitter */
+          color: #1DA1F2;
+          background: white;
+        }
+        
+        .social-icon:nth-child(6):hover { /* GitHub */
+          color: #181717;
+          background: white;
+        }
+        
+        .social-icon:nth-child(7):hover { /* YouTube */
+          color: #FF0000;
+          background: white;
+        }
+        
         .footer-bottom {
           text-align: center;
           padding-top: 20px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
           color: rgba(255, 255, 255, 0.8);
         }
         
@@ -407,6 +577,28 @@ const Footer = () => {
             margin: 0;
             width: auto;
             border-radius: 12px 12px 0 0;
+          }
+          
+          .social-icons {
+            gap: 15px;
+          }
+          
+          .social-icon {
+            width: 45px;
+            height: 45px;
+            font-size: 1.3rem;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .social-icons {
+            gap: 10px;
+          }
+          
+          .social-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
           }
         }
       `}</style>

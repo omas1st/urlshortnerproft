@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import UrlShortener from '../components/UrlShortener';
 import NotificationBell from '../components/NotificationBell';
-import QRCodesPopup from '../components/QRCodesPopup'; // NEW IMPORT
-import BrandLinkPopup from '../components/BrandLinkPopup'; // NEW IMPORT
+import QRCodesPopup from '../components/QRCodesPopup';
+import BrandLinkPopup from '../components/BrandLinkPopup';
 import { 
   FaSignOutAlt, 
   FaLink, 
@@ -15,8 +15,8 @@ import {
   FaCalendarDay,
   FaCalendarAlt,
   FaChevronRight,
-  FaGlobe,  // ADDED: FaGlobe icon import
-  FaShoppingCart  // ADDED: FaShoppingCart icon for Buy Domain
+  FaGlobe,
+  FaShoppingCart
 } from 'react-icons/fa';
 import { FiCopy, FiEye, FiExternalLink } from 'react-icons/fi';
 import api from '../services/api';
@@ -36,10 +36,10 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [showQRCodesPopup, setShowQRCodesPopup] = useState(false); // NEW STATE
-  const [showBrandLinkPopup, setShowBrandLinkPopup] = useState(false); // ADDED: Brand Link popup state
-  const [qrCodesData, setQrCodesData] = useState([]); // NEW STATE
-  const [loadingQRCodes, setLoadingQRCodes] = useState(false); // NEW STATE
+  const [showQRCodesPopup, setShowQRCodesPopup] = useState(false);
+  const [showBrandLinkPopup, setShowBrandLinkPopup] = useState(false);
+  const [qrCodesData, setQrCodesData] = useState([]);
+  const [loadingQRCodes, setLoadingQRCodes] = useState(false);
   const headerRef = useRef(null);
 
   // Get domain affiliate link from environment variables
@@ -139,7 +139,7 @@ const Dashboard = () => {
   }, [getShortUrl]);
 
   /**
-   * fetchQRCodesData - NEW FUNCTION
+   * fetchQRCodesData
    * Fetch all user URLs with QR codes
    */
   const fetchQRCodesData = useCallback(async () => {
@@ -179,19 +179,39 @@ const Dashboard = () => {
   }, [getShortUrl]);
 
   /**
-   * handleOpenQRCodesPopup - NEW FUNCTION
+   * handleOpenQRCodesPopup
    */
   const handleOpenQRCodesPopup = async () => {
     setShowQRCodesPopup(true);
+    // Prevent body scrolling
+    document.body.classList.add('no-scroll');
     // Fetch QR codes data when popup opens
     await fetchQRCodesData();
   };
 
   /**
-   * handleCloseQRCodesPopup - NEW FUNCTION
+   * handleCloseQRCodesPopup
    */
   const handleCloseQRCodesPopup = () => {
     setShowQRCodesPopup(false);
+    // Restore body scrolling
+    document.body.classList.remove('no-scroll');
+  };
+
+  /**
+   * handleOpenBrandLinkPopup
+   */
+  const handleOpenBrandLinkPopup = () => {
+    setShowBrandLinkPopup(true);
+    // Prevent body scrolling is handled inside BrandLinkPopup component
+  };
+
+  /**
+   * handleCloseBrandLinkPopup
+   */
+  const handleCloseBrandLinkPopup = () => {
+    setShowBrandLinkPopup(false);
+    // Restore body scrolling is handled inside BrandLinkPopup component
   };
 
   // Handle scroll to show/hide header
@@ -332,7 +352,7 @@ const Dashboard = () => {
                   <div className="quick-action-icon">
                     <FaLink />
                   </div>
-                  <span className="quick-action-text">All URLs</span>
+                  <span className="quick-action-text">Manage URLs</span>
                 </Link>
                 
                 <Link to="/analytics" className="quick-action-btn">
@@ -353,10 +373,10 @@ const Dashboard = () => {
                   <span className="quick-action-text">QR Codes</span>
                 </button>
                 
-                {/* ADDED: Brand Link Button */}
+                {/* Brand Link Button */}
                 <button 
                   className="quick-action-btn"
-                  onClick={() => setShowBrandLinkPopup(true)}
+                  onClick={handleOpenBrandLinkPopup}
                 >
                   <div className="quick-action-icon">
                     <FaGlobe />
@@ -364,7 +384,7 @@ const Dashboard = () => {
                   <span className="quick-action-text">Brand Link</span>
                 </button>
                 
-                {/* ADDED: Buy Domain Button */}
+                {/* Buy Domain Button */}
                 <a 
                   href={domainAffiliateLink}
                   target="_blank"
@@ -533,9 +553,9 @@ const Dashboard = () => {
         />
       )}
 
-      {/* ADDED: Brand Link Popup */}
+      {/* Brand Link Popup */}
       {showBrandLinkPopup && (
-        <BrandLinkPopup onClose={() => setShowBrandLinkPopup(false)} />
+        <BrandLinkPopup onClose={handleCloseBrandLinkPopup} />
       )}
     </div>
   );
