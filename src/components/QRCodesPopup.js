@@ -1,5 +1,5 @@
 // src/components/QRCodesPopup.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FaTimes, FaCopy, FaDownload, FaQrcode, FaLink, FaRedo } from 'react-icons/fa';
 import { FiExternalLink } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -8,25 +8,6 @@ import './QRCodesPopup.css';
 const QRCodesPopup = ({ qrCodesData, loading, onClose, onRefresh }) => {
   const [copiedStates, setCopiedStates] = useState({});
   const [qrCopiedStates, setQrCopiedStates] = useState({});
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Check if device is mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    // Prevent body scroll when popup is open
-    document.body.classList.add('no-scroll');
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-      document.body.classList.remove('no-scroll');
-    };
-  }, []);
 
   const handleCopyLink = (url, shortId) => {
     navigator.clipboard.writeText(url).then(() => {
@@ -98,8 +79,8 @@ const QRCodesPopup = ({ qrCodesData, loading, onClose, onRefresh }) => {
   };
 
   return (
-    <div className={`qr-codes-popup-overlay ${isMobile ? 'mobile-fullscreen-overlay' : ''}`}>
-      <div className={`qr-codes-popup ${isMobile ? 'mobile-fullscreen' : ''}`}>
+    <div className="qr-codes-popup-overlay">
+      <div className="qr-codes-popup">
         <div className="qr-codes-popup-header">
           <div className="popup-header-left">
             <FaQrcode className="popup-icon" />

@@ -10,18 +10,6 @@
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  animation: brand-fadeIn 0.3s ease;
-}
-
-/* Mobile fullscreen overlay */
-.brand-link-popup-overlay.mobile-fullscreen-overlay {
-  padding: 0;
-  align-items: flex-start;
-}
-
-@keyframes brand-fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .brand-link-popup {
@@ -36,16 +24,6 @@
   overflow: hidden;
 }
 
-/* Mobile fullscreen popup */
-.brand-link-popup.mobile-fullscreen {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: 0;
-  margin: 0;
-}
-
 .brand-popup-header {
   padding: 24px 32px;
   border-bottom: 1px solid #e5e7eb;
@@ -54,7 +32,6 @@
   justify-content: space-between;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  flex-shrink: 0;
 }
 
 .brand-popup-header h2 {
@@ -77,7 +54,6 @@
   justify-content: center;
   cursor: pointer;
   transition: background 0.2s;
-  flex-shrink: 0;
 }
 
 .brand-close-btn:hover {
@@ -88,8 +64,6 @@
   flex: 1;
   overflow-y: auto;
   padding: 32px;
-  display: flex;
-  flex-direction: column;
 }
 
 .brand-step-indicator {
@@ -98,7 +72,6 @@
   justify-content: center;
   margin-bottom: 32px;
   gap: 8px;
-  flex-shrink: 0;
 }
 
 .brand-step {
@@ -114,7 +87,6 @@
   position: relative;
   z-index: 1;
   transition: all 0.3s;
-  flex-shrink: 0;
 }
 
 .brand-step.active {
@@ -152,13 +124,10 @@
 }
 
 .brand-link-step {
-  animation: brand-slideIn 0.3s ease;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  animation: brand-fadeIn 0.3s ease;
 }
 
-@keyframes brand-slideIn {
+@keyframes brand-fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
@@ -180,7 +149,6 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  flex-shrink: 0;
 }
 
 .brand-step-header h3 {
@@ -193,10 +161,6 @@
   color: #6b7280;
   margin-bottom: 24px;
   line-height: 1.5;
-}
-
-.brand-step-content {
-  flex: 1;
 }
 
 .brand-urls-list {
@@ -271,13 +235,11 @@
   align-items: center;
   gap: 4px;
   margin-left: 12px;
-  flex-shrink: 0;
 }
 
 .brand-select-arrow {
   color: #9ca3af;
   margin-left: 12px;
-  flex-shrink: 0;
 }
 
 .brand-empty-state {
@@ -482,14 +444,13 @@
   gap: 6px;
   font-size: 0.875rem;
   transition: background 0.2s;
-  flex-shrink: 0;
 }
 
 .brand-copy-btn:hover {
   background: #5a67d8;
 }
 
-.brand-copy-btn.brand-small {
+.brand-copy-btn.small {
   padding: 6px 12px;
   font-size: 0.75rem;
 }
@@ -573,7 +534,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .brand-next-steps {
@@ -606,7 +566,6 @@
   gap: 12px;
   padding-top: 24px;
   border-top: 1px solid #e5e7eb;
-  flex-shrink: 0;
 }
 
 .brand-btn-primary,
@@ -667,144 +626,24 @@
   background: #a1a1a1;
 }
 
-/* Mobile Responsive Styles */
 @media (max-width: 768px) {
-  .brand-link-popup-overlay {
-    padding: 0;
-  }
-  
-  .brand-link-popup.mobile-fullscreen,
   .brand-link-popup {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 0;
-    margin: 0;
-  }
-  
-  .brand-popup-header {
-    padding: 16px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  
-  .brand-popup-header h2 {
-    font-size: 1.2rem;
+    max-height: 95vh;
   }
   
   .brand-popup-content {
     padding: 20px;
   }
   
-  .brand-step-indicator {
-    margin-bottom: 24px;
-  }
-  
-  .brand-step-label {
-    display: none;
-  }
-  
-  .brand-step-line {
-    top: -15px;
-  }
-  
   .brand-dns-instructions {
     grid-template-columns: 1fr;
-    gap: 16px;
   }
   
   .brand-verified-info {
     grid-template-columns: 1fr;
-    gap: 12px;
   }
   
-  .brand-info-value.branded-url {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .brand-copy-btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .brand-popup-footer {
-    position: sticky;
-    bottom: 0;
-    background: white;
-    border-top: 1px solid #e5e7eb;
-    padding: 16px 20px;
-    z-index: 10;
-    margin-top: auto;
-  }
-  
-  .brand-btn-primary,
-  .brand-btn-secondary {
-    padding: 14px 20px;
-    width: 100%;
-  }
-  
-  .brand-popup-footer {
-    flex-direction: column;
-    gap: 12px;
-  }
-}
-
-/* Very small mobile devices */
-@media (max-width: 480px) {
-  .brand-popup-header {
-    padding: 12px 16px;
-  }
-  
-  .brand-popup-header h2 {
-    font-size: 1.1rem;
-  }
-  
-  .brand-popup-content {
-    padding: 16px;
-  }
-  
-  .brand-step-indicator {
-    gap: 4px;
-  }
-  
-  .brand-step {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .brand-step span {
-    font-size: 12px;
-  }
-  
-  .brand-step-line {
-    top: -12px;
-  }
-  
-  .brand-step-header h3 {
-    font-size: 1.1rem;
-  }
-  
-  .brand-urls-list {
-    max-height: 300px;
-  }
-  
-  .brand-url-item {
-    padding: 12px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .branded-badge {
-    align-self: flex-start;
-    margin-left: 0;
-  }
-  
-  .brand-select-arrow {
-    align-self: flex-end;
+  .brand-step-label {
+    display: none;
   }
 }
