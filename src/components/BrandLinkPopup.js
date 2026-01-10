@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaGlobe, FaLink, FaCopy, FaCheck, FaCog, FaExclamationTriangle, FaChevronDown } from 'react-icons/fa';
+import { FaTimes, FaGlobe, FaLink, FaCopy, FaCheck, FaCog, FaExclamationTriangle, FaChevronDown, FaInfoCircle, FaSync, FaClock } from 'react-icons/fa';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import './BrandLinkPopup.css';
@@ -14,6 +14,13 @@ const BrandLinkPopup = ({ onClose }) => {
   const [verifying, setVerifying] = useState(false);
   const [userDomains, setUserDomains] = useState([]);
   const [copied, setCopied] = useState({});
+  const [verificationResult, setVerificationResult] = useState(null);
+  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
+  const [dnsConfig, setDnsConfig] = useState({
+    txtName: '_brandlink_verify',
+    txtValue: '',
+    cnameValue: ''
+  });
 
   // Fetch user's URLs
   useEffect(() => {
@@ -71,8 +78,17 @@ const BrandLinkPopup = ({ onClose }) => {
 
       if (response.data.success) {
         setCustomDomain(response.data.data.customDomain);
+        setDnsConfig({
+          txtName: '_brandlink_verify',
+          txtValue: response.data.data.customDomain.verificationToken,
+          cnameValue: response.data.data.customDomain.dnsInstructions.cname.value
+        });
         setStep(3);
         toast.success('Domain added! Configure DNS settings below.');
+        // Refresh user domains list
+        fetchUserDomains();
+      } else {
+        toast.error(response.data.message || 'Failed to add domain');
       }
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to add domain';
@@ -86,19 +102,43 @@ const BrandLinkPopup = ({ onClose }) => {
     if (!customDomain) return;
 
     setVerifying(true);
+    setVerificationResult(null);
+    setShowTroubleshooting(false);
+    
     try {
       const response = await api.post(`/custom-domains/${customDomain.id}/verify`);
       
       if (response.data.success) {
+        setVerificationResult({
+          success: true,
+          message: response.data.message,
+          data: response.data.data
+        });
         toast.success('Domain verified successfully!');
         setStep(4);
         fetchUserDomains(); // Refresh domains list
       } else {
+        setVerificationResult({
+          success: false,
+          message: response.data.message,
+          data: response.data.data
+        });
         toast.error('Verification failed. Please check your DNS settings.');
       }
     } catch (error) {
-      const message = error.response?.data?.message || 'Verification failed';
-      toast.error(message);
+      const result = error.response?.data || {
+        success: false,
+        message: error.message || 'Verification failed'
+      };
+      
+      setVerificationResult({
+        success: false,
+        message: result.message,
+        data: result.data,
+        troubleshooting: result.data?.troubleshooting
+      });
+      
+      toast.error(result.message || 'Verification failed');
     } finally {
       setVerifying(false);
     }
@@ -115,7 +155,6 @@ const BrandLinkPopup = ({ onClose }) => {
   };
 
   const getFrontendOrigin = () => {
-    // Use frontend URL for display
     if (process.env.REACT_APP_WEBSITE_URL) {
       return process.env.REACT_APP_WEBSITE_URL.replace(/\/$/, '');
     }
@@ -127,7 +166,6 @@ const BrandLinkPopup = ({ onClose }) => {
   };
 
   const getBackendOrigin = () => {
-    // This is only used for DNS configuration (step 3)
     if (process.env.REACT_APP_BACKEND_URL) {
       return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
     }
@@ -146,6 +184,39 @@ const BrandLinkPopup = ({ onClose }) => {
     if (urlObj.customName) return `${frontendOrigin}/${urlObj.customName}`;
     if (urlObj.shortId) return `${frontendOrigin}/${urlObj.shortId}`;
     return '';
+  };
+
+  // Test DNS lookup (client-side, limited)
+  const testDnsLookup = async () => {
+    if (!customDomain || !customDomain.verificationToken) return;
+    
+    toast.loading('Testing DNS lookup...');
+    try {
+      // Note: Client-side DNS lookup is limited due to browser security
+      // This is a simple test that may not work in all browsers
+      const testUrl = `https://dns.google/resolve?name=_brandlink_verify.${customDomain.domain}&type=TXT`;
+      const response = await fetch(testUrl);
+      const data = await response.json();
+      
+      if (data.Answer) {
+        const txtRecords = data.Answer.map(ans => ans.data.replace(/"/g, ''));
+        const found = txtRecords.includes(customDomain.verificationToken);
+        
+        if (found) {
+          toast.dismiss();
+          toast.success('DNS record found! You can now verify.');
+        } else {
+          toast.dismiss();
+          toast.error('DNS record found but token mismatch.');
+        }
+      } else {
+        toast.dismiss();
+        toast.error('No TXT records found. DNS may not have propagated yet.');
+      }
+    } catch (error) {
+      toast.dismiss();
+      toast.error('DNS test failed. Check your DNS settings.');
+    }
   };
 
   // Step 1: Select URL
@@ -268,7 +339,7 @@ const BrandLinkPopup = ({ onClose }) => {
         <h3>Configure DNS Settings</h3>
       </div>
       <p className="brand-step-description">
-        Add these DNS records at your domain registrar (GoDaddy, Namecheap, etc.)
+        Add these DNS records at your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.)
       </p>
       
       <div className="brand-dns-instructions">
@@ -276,6 +347,13 @@ const BrandLinkPopup = ({ onClose }) => {
           <div className="brand-instruction-header">
             <FaCog />
             <h4>TXT Record (Verification)</h4>
+            <button
+              className="brand-test-btn"
+              onClick={testDnsLookup}
+              title="Test DNS lookup"
+            >
+              <FaSync /> Test
+            </button>
           </div>
           <div className="brand-instruction-content">
             <div className="brand-dns-row">
@@ -284,17 +362,17 @@ const BrandLinkPopup = ({ onClose }) => {
             </div>
             <div className="brand-dns-row">
               <span className="brand-dns-label">Name/Host:</span>
-              <span className="brand-dns-value">_brandlink_verify</span>
+              <span className="brand-dns-value">{dnsConfig.txtName}</span>
             </div>
             <div className="brand-dns-row">
               <span className="brand-dns-label">Value:</span>
               <div className="brand-dns-value-container">
                 <code className="brand-dns-value-code">
-                  {customDomain?.verificationToken || 'Loading...'}
+                  {dnsConfig.txtValue || customDomain?.verificationToken || 'Loading...'}
                 </code>
                 <button
                   className="brand-copy-btn brand-small"
-                  onClick={() => copyToClipboard(customDomain?.verificationToken, 'txt')}
+                  onClick={() => copyToClipboard(dnsConfig.txtValue || customDomain?.verificationToken, 'txt')}
                 >
                   {copied.txt ? <FaCheck /> : <FaCopy />}
                 </button>
@@ -302,7 +380,7 @@ const BrandLinkPopup = ({ onClose }) => {
             </div>
             <div className="brand-dns-row">
               <span className="brand-dns-label">TTL:</span>
-              <span className="brand-dns-value">3600</span>
+              <span className="brand-dns-value">3600 (1 hour)</span>
             </div>
           </div>
         </div>
@@ -319,17 +397,17 @@ const BrandLinkPopup = ({ onClose }) => {
             </div>
             <div className="brand-dns-row">
               <span className="brand-dns-label">Name/Host:</span>
-              <span className="brand-dns-value">@ (or leave empty)</span>
+              <span className="brand-dns-value">@ (root domain)</span>
             </div>
             <div className="brand-dns-row">
               <span className="brand-dns-label">Value:</span>
               <div className="brand-dns-value-container">
                 <code className="brand-dns-value-code">
-                  links.{getBackendOrigin().replace(/^https?:\/\//, '')}
+                  {dnsConfig.cnameValue || `links.${getBackendOrigin().replace(/^https?:\/\//, '')}`}
                 </code>
                 <button
                   className="brand-copy-btn brand-small"
-                  onClick={() => copyToClipboard(`links.${getBackendOrigin().replace(/^https?:\/\//, '')}`, 'cname')}
+                  onClick={() => copyToClipboard(dnsConfig.cnameValue || `links.${getBackendOrigin().replace(/^https?:\/\//, '')}`, 'cname')}
                 >
                   {copied.cname ? <FaCheck /> : <FaCopy />}
                 </button>
@@ -337,17 +415,83 @@ const BrandLinkPopup = ({ onClose }) => {
             </div>
             <div className="brand-dns-row">
               <span className="brand-dns-label">TTL:</span>
-              <span className="brand-dns-value">3600</span>
+              <span className="brand-dns-value">3600 (1 hour)</span>
             </div>
           </div>
         </div>
       </div>
       
+      {/* Verification Status */}
+      {verificationResult && (
+        <div className={`brand-verification-result ${verificationResult.success ? 'success' : 'error'}`}>
+          <div className="brand-verification-header">
+            {verificationResult.success ? '✅' : '❌'}
+            <h4>{verificationResult.success ? 'Verification Result' : 'Verification Failed'}</h4>
+          </div>
+          <p>{verificationResult.message}</p>
+          
+          {verificationResult.data?.error && (
+            <div className="brand-error-details">
+              <strong>Error:</strong> {verificationResult.data.error}
+            </div>
+          )}
+          
+          {verificationResult.troubleshooting && !verificationResult.success && (
+            <div className="brand-troubleshooting">
+              <button
+                className="brand-troubleshooting-toggle"
+                onClick={() => setShowTroubleshooting(!showTroubleshooting)}
+              >
+                <FaInfoCircle /> {showTroubleshooting ? 'Hide' : 'Show'} Troubleshooting Steps
+              </button>
+              
+              {showTroubleshooting && (
+                <div className="brand-troubleshooting-steps">
+                  <h5>How to fix this:</h5>
+                  <ol>
+                    {Object.entries(verificationResult.troubleshooting).map(([key, value]) => (
+                      <li key={key}>{value}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      
       <div className="brand-note-box">
         <FaExclamationTriangle />
         <div className="brand-note-content">
-          <strong>Important:</strong> DNS changes can take up to 48 hours to propagate globally.
-          After adding these records, wait a few minutes before verifying.
+          <strong>Important DNS Tips:</strong>
+          <ul>
+            <li>DNS changes can take 5 minutes to 48 hours to propagate globally</li>
+            <li>After adding records, wait at least 5 minutes before verifying</li>
+            <li>Use "Test" button to check if DNS record is visible</li>
+            <li>If verification fails, wait 10 minutes and try again</li>
+            <li>Make sure to remove quotes from TXT record value</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div className="brand-dns-timing">
+        <FaClock />
+        <div className="brand-timing-content">
+          <strong>Expected Timing:</strong>
+          <div className="brand-timing-steps">
+            <div className="brand-timing-step">
+              <span className="brand-timing-label">Immediately:</span>
+              <span className="brand-timing-value">DNS record saved at registrar</span>
+            </div>
+            <div className="brand-timing-step">
+              <span className="brand-timing-label">5-10 minutes:</span>
+              <span className="brand-timing-value">Most DNS servers updated</span>
+            </div>
+            <div className="brand-timing-step">
+              <span className="brand-timing-label">1-24 hours:</span>
+              <span className="brand-timing-value">Global propagation complete</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -372,10 +516,13 @@ const BrandLinkPopup = ({ onClose }) => {
           <div className="brand-info-card">
             <div className="brand-info-label">Your Branded URL</div>
             <div className="brand-info-value branded-url">
-              https://{customDomain?.domain}/{customDomain?.brandedShortId}
+              {verificationResult?.data?.brandedUrl || `https://${customDomain?.domain}/${customDomain?.brandedShortId}`}
               <button
                 className="brand-copy-btn"
-                onClick={() => copyToClipboard(`https://${customDomain?.domain}/${customDomain?.brandedShortId}`, 'final')}
+                onClick={() => copyToClipboard(
+                  verificationResult?.data?.brandedUrl || `https://${customDomain?.domain}/${customDomain?.brandedShortId}`, 
+                  'final'
+                )}
               >
                 {copied.final ? <FaCheck /> : <FaCopy />} Copy
               </button>
@@ -401,9 +548,10 @@ const BrandLinkPopup = ({ onClose }) => {
         <div className="brand-next-steps">
           <h4>Next Steps:</h4>
           <ul>
-            <li>Share your branded URL: https://{customDomain?.domain}/{customDomain?.brandedShortId}</li>
+            <li>Share your branded URL: {verificationResult?.data?.brandedUrl || `https://${customDomain?.domain}/${customDomain?.brandedShortId}`}</li>
             <li>Track clicks in your analytics dashboard</li>
             <li>Add more domains from your dashboard</li>
+            <li>Set this as your primary domain in settings</li>
           </ul>
         </div>
       </div>
@@ -483,13 +631,30 @@ const BrandLinkPopup = ({ onClose }) => {
             )}
             
             {step === 3 && (
-              <button
-                className="brand-btn-primary"
-                onClick={handleVerifyDomain}
-                disabled={verifying}
-              >
-                {verifying ? 'Verifying...' : 'Verify Domain'}
-              </button>
+              <div className="brand-step3-buttons">
+                <button
+                  className="brand-btn-secondary"
+                  onClick={() => {
+                    setVerificationResult(null);
+                    toast.info('Refreshing DNS instructions...');
+                  }}
+                >
+                  Refresh
+                </button>
+                <button
+                  className="brand-btn-primary"
+                  onClick={handleVerifyDomain}
+                  disabled={verifying}
+                >
+                  {verifying ? (
+                    <>
+                      <FaSync className="brand-spin" /> Verifying...
+                    </>
+                  ) : (
+                    'Verify Domain'
+                  )}
+                </button>
+              </div>
             )}
             
             {step === 4 && (
