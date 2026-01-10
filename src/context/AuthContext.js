@@ -149,6 +149,7 @@ export const AuthProvider = ({ children }) => {
       redirectUrl,
       saveRedirectUrl,
       clearRedirectUrl
+      // Removed verifyIdentity and resetPassword since Login.js uses api directly
     }}>
       {children}
     </AuthContext.Provider>
