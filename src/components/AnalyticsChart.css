@@ -1,0 +1,238 @@
+/* src/components/AnalyticsChart.css */
+
+/* Main Container */
+.analytics-chart-container {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.analytics-chart-container:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Header Section */
+.ac-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(to right, #f8fafc, #ffffff);
+}
+
+.ac-title-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ac-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.ac-time-range {
+  background: #3b82f6;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* Chart Wrapper */
+.ac-chart-wrapper {
+  padding: 20px 24px 24px;
+  position: relative;
+}
+
+.ac-chart-area {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+/* No Data State */
+.ac-no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px 20px;
+  text-align: center;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e1;
+}
+
+.ac-no-data-icon {
+  color: #94a3b8;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.ac-no-data-icon svg {
+  stroke-width: 1.5;
+}
+
+.ac-no-data-text {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ac-no-data-subtext {
+  margin: 0;
+  font-size: 14px;
+  color: #94a3b8;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* Chart.js Overrides */
+.analytics-chart-container .chartjs-render-monitor {
+  border-radius: 6px;
+}
+
+.analytics-chart-container canvas {
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .analytics-chart-container {
+    border-radius: 10px;
+  }
+  
+  .ac-header {
+    padding: 16px 20px 12px;
+  }
+  
+  .ac-chart-wrapper {
+    padding: 16px 20px 20px;
+  }
+  
+  .ac-title {
+    font-size: 16px;
+  }
+  
+  .ac-time-range {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  
+  .ac-chart-area {
+    height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ac-title-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ac-time-range {
+    align-self: flex-start;
+  }
+  
+  .ac-chart-area {
+    height: 260px;
+  }
+  
+  .ac-no-data {
+    padding: 30px 16px;
+  }
+  
+  .ac-no-data-text {
+    font-size: 15px;
+  }
+  
+  .ac-no-data-subtext {
+    font-size: 13px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .analytics-chart-container {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .ac-header {
+    background: linear-gradient(to right, #0f172a, #1e293b);
+    border-bottom-color: #334155;
+  }
+  
+  .ac-title {
+    color: #f1f5f9;
+  }
+  
+  .ac-time-range {
+    background: #2563eb;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.4);
+  }
+  
+  .ac-no-data {
+    background: #0f172a;
+    border-color: #475569;
+  }
+  
+  .ac-no-data-icon {
+    color: #64748b;
+  }
+  
+  .ac-no-data-text {
+    color: #cbd5e1;
+  }
+  
+  .ac-no-data-subtext {
+    color: #94a3b8;
+  }
+}
+
+/* Animation for chart loading */
+@keyframes chartFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ac-chart-area > * {
+  animation: chartFadeIn 0.5s ease-out forwards;
+}
+
+/* Print Styles */
+@media print {
+  .analytics-chart-container {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+  
+  .ac-time-range {
+    background: #333 !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

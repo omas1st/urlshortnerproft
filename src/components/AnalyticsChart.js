@@ -14,6 +14,7 @@ import {
   Filler
 } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import './AnalyticsChart.css';
 
 ChartJS.register(
   CategoryScale,
@@ -301,7 +302,11 @@ const AnalyticsChart = ({ data = {}, type = 'line', title = '', timeRange = '' }
         position: 'top',
         labels: {
           padding: 20,
-          usePointStyle: true
+          usePointStyle: true,
+          font: {
+            family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            size: 12
+          }
         }
       },
       title: {
@@ -310,9 +315,21 @@ const AnalyticsChart = ({ data = {}, type = 'line', title = '', timeRange = '' }
         padding: {
           top: 10,
           bottom: 30
+        },
+        font: {
+          family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          size: 16,
+          weight: '600'
         }
       },
       tooltip: {
+        backgroundColor: 'rgba(17, 25, 40, 0.9)',
+        titleColor: '#f8fafc',
+        bodyColor: '#f8fafc',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
         callbacks: {
           label: function(context) {
             let label = context.dataset.label || '';
@@ -332,28 +349,50 @@ const AnalyticsChart = ({ data = {}, type = 'line', title = '', timeRange = '' }
     scales: type === 'clicks' ? {
       x: {
         grid: {
-          display: false
+          display: false,
+          color: 'rgba(0, 0, 0, 0.05)'
+        },
+        ticks: {
+          font: {
+            family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          }
         }
       },
       y: {
         beginAtZero: true,
         grid: {
-          borderDash: [2, 2]
+          borderDash: [2, 2],
+          color: 'rgba(0, 0, 0, 0.05)'
         },
         ticks: {
-          stepSize: 1
+          stepSize: 1,
+          font: {
+            family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          }
         }
       }
     } : (type === 'countries' ? {
       x: {
         grid: {
-          display: false
+          display: false,
+          color: 'rgba(0, 0, 0, 0.05)'
+        },
+        ticks: {
+          font: {
+            family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          }
         }
       },
       y: {
         beginAtZero: true,
         grid: {
-          borderDash: [2, 2]
+          borderDash: [2, 2],
+          color: 'rgba(0, 0, 0, 0.05)'
+        },
+        ticks: {
+          font: {
+            family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          }
         }
       }
     } : {})
@@ -362,8 +401,16 @@ const AnalyticsChart = ({ data = {}, type = 'line', title = '', timeRange = '' }
   const renderChart = () => {
     if (isDataEmpty) {
       return (
-        <div className="no-chart">
-          <p>No data to display for the selected period</p>
+        <div className="ac-no-data">
+          <div className="ac-no-data-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 10a3 3 0 1 0 6 0 3 3 0 0 0-6 0z" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8 16l2-2 2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <p className="ac-no-data-text">No data to display for the selected period</p>
+          <p className="ac-no-data-subtext">Try selecting a different time range or check your data source</p>
         </div>
       );
     }
@@ -382,13 +429,17 @@ const AnalyticsChart = ({ data = {}, type = 'line', title = '', timeRange = '' }
   };
 
   return (
-    <div className="analytics-chart">
-      <div className="chart-header">
-        <h3>{title}</h3>
-        {timeRange && <span className="time-range">{timeRange}</span>}
+    <div className="analytics-chart-container">
+      <div className="ac-header">
+        <div className="ac-title-wrapper">
+          <h3 className="ac-title">{title}</h3>
+          {timeRange && <span className="ac-time-range">{timeRange}</span>}
+        </div>
       </div>
-      <div className="chart-container" style={{ height: '300px' }}>
-        {renderChart()}
+      <div className="ac-chart-wrapper">
+        <div className="ac-chart-area">
+          {renderChart()}
+        </div>
       </div>
     </div>
   );
