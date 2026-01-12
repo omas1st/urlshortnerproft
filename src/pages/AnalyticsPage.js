@@ -425,11 +425,37 @@ const AnalyticsPage = () => {
       normalized.referrerCategories = categorizeReferrers(referrerData);
     }
     
-    // Peak hour data - handle both formats
+    // ---------- Peak hour data ----------
+    let peakHourData = [];
     if (raw.peakHourData) {
-      normalized.peakHourData = raw.peakHourData;
+      peakHourData = raw.peakHourData;
     } else if (raw.peakHours) {
-      normalized.peakHourData = raw.peakHours;
+      peakHourData = raw.peakHours;
+    } else if (raw.clicksByHour) {
+      peakHourData = raw.clicksByHour;
+    }
+
+    // Ensure we have data for all 24 hours
+    if (Array.isArray(peakHourData) && peakHourData.length > 0) {
+      // Create a map for easier lookup
+      const hourMap = {};
+      peakHourData.forEach(item => {
+        const hour = item.hour !== undefined ? item.hour : item._id;
+        const count = item.count || item.clicks || 0;
+        hourMap[hour] = count;
+      });
+      
+      // Create array for all 24 hours
+      normalized.peakHourData = Array.from({ length: 24 }, (_, i) => ({
+        hour: i,
+        count: hourMap[i] || 0
+      }));
+    } else {
+      // Default to empty data for all 24 hours
+      normalized.peakHourData = Array.from({ length: 24 }, (_, i) => ({
+        hour: i,
+        count: 0
+      }));
     }
     
     // Top cities
