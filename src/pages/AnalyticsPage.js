@@ -1,3 +1,4 @@
+// src/pages/AnalyticsPage.js
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import AnalyticsChart from '../components/AnalyticsChart';
@@ -38,6 +39,7 @@ import api from '../services/api';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import './AnalyticsPage.css';
+import { getUserLocalTimezone } from '../utils/timezones';
 
 const AnalyticsPage = () => {
   const [searchParams] = useSearchParams();
@@ -66,6 +68,9 @@ const AnalyticsPage = () => {
     topCitiesData: null,
     topLinksData: null
   });
+
+  // NEW: timezone state (initialized from utility)
+  const [selectedTimezone, setSelectedTimezone] = useState(() => getUserLocalTimezone());
 
   const activeRequest = useRef(null);
   const MAX_RETRIES = 2;
@@ -1155,13 +1160,50 @@ const AnalyticsPage = () => {
             </section>
           )}
 
-          {/* Peak Hour Section */}
+          {/* Peak Hour Section (UPDATED: includes timezone selector and passes initialTimezone) */}
           {newChartData.peakHourData && (
             <section className="peak-hour-section">
-              <h2 className="section-title"><FaHourglass /> Daily Traffic Pattern</h2>
+              <div className="section-header-with-timezone">
+                <h2 className="section-title"><FaHourglass /> Daily Traffic Pattern</h2>
+                <div className="global-timezone-selector">
+                  <label htmlFor="global-timezone-select">Display Timezone:</label>
+                  <select 
+                    id="global-timezone-select"
+                    value={selectedTimezone}
+                    onChange={(e) => setSelectedTimezone(e.target.value)}
+                    className="timezone-select"
+                  >
+                    <option value="UTC">UTC (Coordinated Universal Time)</option>
+                    <option value={getUserLocalTimezone()}>Your Local Timezone</option>
+                    <optgroup label="North America">
+                      <option value="America/New_York">Eastern Time (US & Canada)</option>
+                      <option value="America/Chicago">Central Time (US & Canada)</option>
+                      <option value="America/Los_Angeles">Pacific Time (US & Canada)</option>
+                      <option value="America/Toronto">Eastern Time - Toronto</option>
+                    </optgroup>
+                    <optgroup label="Europe">
+                      <option value="Europe/London">London</option>
+                      <option value="Europe/Paris">Paris</option>
+                      <option value="Europe/Berlin">Berlin</option>
+                      <option value="Europe/Madrid">Madrid</option>
+                    </optgroup>
+                    <optgroup label="Asia">
+                      <option value="Asia/Tokyo">Tokyo</option>
+                      <option value="Asia/Shanghai">Shanghai</option>
+                      <option value="Asia/Singapore">Singapore</option>
+                      <option value="Asia/Dubai">Dubai</option>
+                    </optgroup>
+                    <optgroup label="Australia/Pacific">
+                      <option value="Australia/Sydney">Sydney</option>
+                      <option value="Pacific/Auckland">Auckland</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
               <PeakHourChart 
                 data={newChartData.peakHourData}
                 timeRange={getDisplayTimeRange()}
+                initialTimezone={selectedTimezone}
               />
             </section>
           )}
