@@ -87,28 +87,28 @@ const ReferrerChart = ({ data, timeRange }) => {
     data.forEach(item => {
       const source = item._id || item.referrer || '';
       const count = item.count || item.clicks || 0;
-      const sourceLower = source.toLowerCase();
+      const sourceLower = (source || '').toString().toLowerCase();
 
       // Categorize
-      if (source === 'Direct' || source === 'direct' || source === '') {
+      if (source === 'Direct' || sourceLower === 'direct' || source === '') {
         categories['Direct'] += count;
-        details.direct[source] = count;
+        details.direct[source || 'Direct'] = count;
       } 
       else if (socialPlatforms.some(platform => sourceLower.includes(platform))) {
         categories['Social Media'] += count;
-        details.social[source] = count;
+        details.social[source || 'Social'] = count;
       }
       else if (searchEngines.some(engine => sourceLower.includes(engine))) {
         categories['Search'] += count;
-        details.search[source] = count;
+        details.search[source || 'Search'] = count;
       }
       else if (sourceLower.includes('mail') || sourceLower.includes('email')) {
         categories['Email'] += count;
-        details.email[source] = count;
+        details.email[source || 'Email'] = count;
       }
       else {
         categories['Others'] += count;
-        details.others[source] = count;
+        details.others[source || 'Other'] = count;
       }
     });
 
@@ -126,20 +126,21 @@ const ReferrerChart = ({ data, timeRange }) => {
       {
         data: categoryEntries.map(([, count]) => count),
         backgroundColor: [
-          'rgba(255, 99, 132, 0.8)',    // Social Media - Red
-          'rgba(54, 162, 235, 0.8)',     // Search - Blue
-          'rgba(255, 205, 86, 0.8)',     // Email - Yellow
-          'rgba(75, 192, 192, 0.8)',     // Direct - Green
-          'rgba(153, 102, 255, 0.8)'     // Others - Purple
+          'rgba(59,130,246,0.92)',    // Social Media - Blue
+          'rgba(16,185,129,0.92)',    // Search - Green
+          'rgba(245,158,11,0.92)',    // Email - Yellow/Orange
+          'rgba(139,92,246,0.92)',    // Direct - Purple
+          'rgba(107,114,128,0.92)'    // Others - Gray
         ],
         borderColor: [
-          'rgb(255, 99, 132)',
-          'rgb(54, 162, 235)',
-          'rgb(255, 205, 86)',
-          'rgb(75, 192, 192)',
-          'rgb(153, 102, 255)'
+          'rgba(255,255,255,0.85)',
+          'rgba(255,255,255,0.85)',
+          'rgba(255,255,255,0.85)',
+          'rgba(255,255,255,0.85)',
+          'rgba(255,255,255,0.85)'
         ],
-        borderWidth: 2
+        borderWidth: 2,
+        hoverOffset: 6
       }
     ]
   };
@@ -149,16 +150,10 @@ const ReferrerChart = ({ data, timeRange }) => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'right',
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-          font: {
-            size: 12
-          }
-        }
+        display: false // we use a custom legend for consistent layout
       },
       tooltip: {
+        yAlign: 'center',
         callbacks: {
           label: (context) => {
             const label = context.label || '';
@@ -169,19 +164,19 @@ const ReferrerChart = ({ data, timeRange }) => {
         }
       }
     },
-    cutout: '60%'
+    cutout: '62%'
   };
 
   const getCategoryIcon = (category) => {
     switch(category) {
       case 'Social Media':
-        return <FaFacebook />;
+        return <FaFacebook aria-hidden="true" />;
       case 'Search':
-        return <FaGoogle />;
+        return <FaGoogle aria-hidden="true" />;
       case 'Email':
-        return <FaEnvelope />;
+        return <FaEnvelope aria-hidden="true" />;
       case 'Direct':
-        return <FaLink />;
+        return <FaLink aria-hidden="true" />;
       default:
         return null;
     }
@@ -203,49 +198,74 @@ const ReferrerChart = ({ data, timeRange }) => {
     if (Object.keys(detailData).length === 0) return null;
 
     return (
-      <div className="category-details">
+      <div className="uc-category-details">
         {Object.entries(detailData).map(([source, count]) => (
-          <div key={source} className="detail-item">
-            <span className="detail-source">{source}</span>
-            <span className="detail-count">{count}</span>
+          <div key={source} className="uc-detail-item">
+            <span className="uc-detail-source" title={source}>{source}</span>
+            <span className="uc-detail-count">{count}</span>
           </div>
         ))}
       </div>
     );
   };
 
+  // Custom legend to keep consistent layout (color swatches + labels)
+  const legendItems = chartData.labels.map((label, i) => {
+    const count = chartData.datasets[0].data[i] || 0;
+    const percent = ((count / total) * 100).toFixed(1);
+    const color = chartData.datasets[0].backgroundColor[i];
+    return { label, count, percent, color };
+  });
+
+  // Helper to derive a css-safe classname from category, e.g. "Social Media" -> "SocialMedia"
+  const categoryToClass = (category) => category.replace(/\s+/g, '');
+
   return (
-    <div className="referrer-chart">
-      <div className="chart-header">
-        <h3>Referrer Categories</h3>
-        <span className="time-range">{timeRange}</span>
+    <div className="uc-referrer-chart" role="region" aria-label="Referrer categories and breakdown">
+      <div className="uc-chart-header">
+        <div className="uc-chart-title">
+          <h3>Referrer Categories</h3>
+          <span className="uc-time-range">{timeRange}</span>
+        </div>
+
+        <div className="uc-chart-legend" aria-hidden="true">
+          {legendItems.map((it) => (
+            <div className="uc-legend-item" key={it.label}>
+              <span className="uc-legend-swatch" style={{ backgroundColor: it.color }} />
+              <span className="uc-legend-label">{it.label}</span>
+              <span className="uc-legend-count">{it.count}</span>
+              <span className="uc-legend-percent">{it.percent}%</span>
+            </div>
+          ))}
+        </div>
       </div>
       
-      <div className="chart-content">
-        <div className="chart-container" style={{ width: '50%', height: '300px' }}>
+      <div className="uc-chart-content">
+        <div className="uc-chart-container">
           <Doughnut data={chartData} options={options} />
         </div>
         
-        <div className="referrer-details">
+        <div className="uc-referrer-details" aria-live="polite">
           {categoryEntries.map(([category, count]) => {
             const percentage = ((count / total) * 100).toFixed(1);
+            const categoryClass = categoryToClass(category);
             
             return (
-              <div key={category} className="referrer-category">
-                <div className="category-header">
-                  <div className="category-icon">
+              <div key={category} className={`uc-referrer-category ${categoryClass}`}>
+                <div className="uc-category-header">
+                  <div className="uc-category-icon" aria-hidden="true">
                     {getCategoryIcon(category)}
                   </div>
-                  <div className="category-info">
+                  <div className="uc-category-info">
                     <h4>{category}</h4>
-                    <div className="category-stats">
-                      <span className="category-count">{count}</span>
-                      <span className="category-percentage">{percentage}%</span>
+                    <div className="uc-category-stats">
+                      <span className="uc-category-count">{count}</span>
+                      <span className="uc-category-percentage">{percentage}%</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="category-breakdown">
+                <div className="uc-category-breakdown">
                   {getCategoryDetails(category)}
                 </div>
               </div>
@@ -254,14 +274,14 @@ const ReferrerChart = ({ data, timeRange }) => {
         </div>
       </div>
       
-      <div className="referrer-summary">
-        <div className="summary-item">
-          <span className="summary-label">Total Referrals:</span>
-          <span className="summary-value">{total}</span>
+      <div className="uc-referrer-summary" aria-hidden="true">
+        <div className="uc-summary-item">
+          <span className="uc-summary-label">Total Referrals</span>
+          <span className="uc-summary-value">{total}</span>
         </div>
-        <div className="summary-item">
-          <span className="summary-label">Top Source:</span>
-          <span className="summary-value">
+        <div className="uc-summary-item">
+          <span className="uc-summary-label">Top Source</span>
+          <span className="uc-summary-value">
             {categoryEntries.reduce((max, item) => item[1] > max[1] ? item : max, categoryEntries[0])[0]}
           </span>
         </div>

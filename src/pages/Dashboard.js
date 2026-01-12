@@ -42,6 +42,9 @@ const Dashboard = () => {
   const [loadingQRCodes, setLoadingQRCodes] = useState(false); // NEW STATE
   const headerRef = useRef(null);
 
+  // Feature flag: hide notification bell temporarily without removing it
+  const SHOW_NOTIFICATION_BELL = false;
+
   // Get domain affiliate link from environment variables
   const domainAffiliateLink = process.env.REACT_APP_DOMAIN_AFFILIATE_LINK || '#';
 
@@ -296,7 +299,7 @@ const Dashboard = () => {
             </div>
             
             <div className="header-actions">
-              <NotificationBell />
+              {SHOW_NOTIFICATION_BELL && <NotificationBell />}
               <button onClick={handleLogout} className="logout-btn">
                 <FaSignOutAlt /> <span className="logout-text">Logout</span>
               </button>

@@ -33,6 +33,9 @@ import 'react-datepicker/dist/react-datepicker.css';
 // Toggle this to true if you want Smart Dynamic Links UI to reappear.
 const ENABLE_SMART_DYNAMIC_LINKS = false;
 
+// Toggle this to true when you want the Affiliate Tracking UI to appear again.
+const ENABLE_AFFILIATE = false;
+
 const AdvancedSettings = ({ settings = {}, onChange }) => {
   const [expandedSection, setExpandedSection] = useState(null);
   const [showRuleGuide, setShowRuleGuide] = useState(false);
@@ -547,89 +550,91 @@ const AdvancedSettings = ({ settings = {}, onChange }) => {
         )}
       </div>
 
-      {/* Affiliate Tracking */}
-      <div className="setting-section" style={{ marginTop: 12 }}>
-        <button className="section-header" type="button" onClick={() => toggleSection('affiliate')} style={sectionButtonStyle}>
-          <FaChartLine /> Affiliate Tracking
-        </button>
-        {expandedSection === 'affiliate' && (
-          <div className="section-content" style={sectionContentStyle}>
-            <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input
-                type="checkbox"
-                checked={settings.enableAffiliateTracking || false}
-                onChange={(e) => handleChange('enableAffiliateTracking', e.target.checked)}
-              />
-              <span>Enable Affiliate Performance Tracking</span>
-            </label>
+      {/* Affiliate Tracking - wrapped in feature flag so it's hidden for now without deletion */}
+      {ENABLE_AFFILIATE && (
+        <div className="setting-section" style={{ marginTop: 12 }}>
+          <button className="section-header" type="button" onClick={() => toggleSection('affiliate')} style={sectionButtonStyle}>
+            <FaChartLine /> Affiliate Tracking
+          </button>
+          {expandedSection === 'affiliate' && (
+            <div className="section-content" style={sectionContentStyle}>
+              <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={settings.enableAffiliateTracking || false}
+                  onChange={(e) => handleChange('enableAffiliateTracking', e.target.checked)}
+                />
+                <span>Enable Affiliate Performance Tracking</span>
+              </label>
 
-            {settings.enableAffiliateTracking && (
-              <div className="affiliate-fields" style={{ marginTop: 10 }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                  <input
-                    type="text"
-                    placeholder="Affiliate ID"
-                    value={settings.affiliateId || ''}
-                    onChange={(e) => handleChange('affiliateId', e.target.value)}
-                    style={inputStyle}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Affiliate Tag"
-                    value={settings.affiliateTag || ''}
-                    onChange={(e) => handleChange('affiliateTag', e.target.value)}
-                    style={inputStyle}
-                  />
-                </div>
+              {settings.enableAffiliateTracking && (
+                <div className="affiliate-fields" style={{ marginTop: 10 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <input
+                      type="text"
+                      placeholder="Affiliate ID"
+                      value={settings.affiliateId || ''}
+                      onChange={(e) => handleChange('affiliateId', e.target.value)}
+                      style={inputStyle}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Affiliate Tag"
+                      value={settings.affiliateTag || ''}
+                      onChange={(e) => handleChange('affiliateTag', e.target.value)}
+                      style={inputStyle}
+                    />
+                  </div>
 
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    placeholder="Commission Rate (%)"
-                    value={settings.commissionRate || ''}
-                    onChange={(e) => handleChange('commissionRate', e.target.value)}
-                    style={inputStyle}
-                  />
-                  <input
-                    type="number"
-                    min="1"
-                    max="365"
-                    placeholder="Cookie Duration (days)"
-                    value={settings.cookieDuration || ''}
-                    onChange={(e) => handleChange('cookieDuration', e.target.value)}
-                    style={inputStyle}
-                  />
-                </div>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      placeholder="Commission Rate (%)"
+                      value={settings.commissionRate || ''}
+                      onChange={(e) => handleChange('commissionRate', e.target.value)}
+                      style={inputStyle}
+                    />
+                    <input
+                      type="number"
+                      min="1"
+                      max="365"
+                      placeholder="Cookie Duration (days)"
+                      value={settings.cookieDuration || ''}
+                      onChange={(e) => handleChange('cookieDuration', e.target.value)}
+                      style={inputStyle}
+                    />
+                  </div>
 
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ display: 'block', marginBottom: 6 }}>Custom Parameters (utm...)</label>
-                  <textarea
-                    placeholder="utm_source=affiliate&utm_medium=referral"
-                    value={settings.customParams || ''}
-                    onChange={(e) => handleChange('customParams', e.target.value)}
-                    rows="3"
-                    style={{ width: '100%', padding: 8 }}
-                  />
-                </div>
+                  <div style={{ marginBottom: 8 }}>
+                    <label style={{ display: 'block', marginBottom: 6 }}>Custom Parameters (utm...)</label>
+                    <textarea
+                      placeholder="utm_source=affiliate&utm_medium=referral"
+                      value={settings.customParams || ''}
+                      onChange={(e) => handleChange('customParams', e.target.value)}
+                      rows="3"
+                      style={{ width: '100%', padding: 8 }}
+                    />
+                  </div>
 
-                <div>
-                  <label style={{ display: 'block', marginBottom: 6 }}>Conversion Pixel</label>
-                  <textarea
-                    placeholder="Paste conversion tracking pixel code"
-                    value={settings.conversionPixel || ''}
-                    onChange={(e) => handleChange('conversionPixel', e.target.value)}
-                    rows="3"
-                    style={{ width: '100%', padding: 8 }}
-                  />
+                  <div>
+                    <label style={{ display: 'block', marginBottom: 6 }}>Conversion Pixel</label>
+                    <textarea
+                      placeholder="Paste conversion tracking pixel code"
+                      value={settings.conversionPixel || ''}
+                      onChange={(e) => handleChange('conversionPixel', e.target.value)}
+                      rows="3"
+                      style={{ width: '100%', padding: 8 }}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Footer small helpers */}
 
