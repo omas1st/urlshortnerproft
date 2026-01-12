@@ -1,124 +1,39 @@
-/* 
- * RedirectHandler Component Styles
- * Professional loading and redirection states
- */
+/* src/components/RedirectHandler.css */
 
 .redirect-loading {
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: #fff;
   text-align: center;
-}
-
-.redirect-loading__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 400px;
-  padding: 2.5rem;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  
+  padding: 2rem;
   animation: fadeIn 0.5s ease-out;
 }
 
-/* Modern Spinner Design */
-.spinner {
-  position: relative;
-  width: 70px;
-  height: 70px;
-  margin-bottom: 1.5rem;
-}
-
-.spinner::before,
-.spinner::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  animation: spin 1.8s linear infinite;
-}
-
-.spinner::before {
-  width: 100%;
-  height: 100%;
-  background: conic-gradient(transparent, #4f46e5, transparent);
- 
- 
-}
-
-.spinner::after {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c73e6 100%);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-/* Redirecting Text */
 .redirect-loading p {
-  color: #374151;
-  font-size: 1.125rem;
+  margin-top: 2rem;
+  font-size: 1.5rem;
   font-weight: 500;
-  margin: 0.5rem 0 1.5rem;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+  animation: pulse 2s infinite;
 }
 
-.redirect-loading__subtext {
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  font-weight: 400;
-  opacity: 0.8;
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* URL Preview (optional - if you want to show the shortId) */
-.redirect-loading__url {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: #f3f4f6;
-  border-radius: 12px;
-  margin: 1.5rem 0;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-  font-size: 0.875rem;
-  color: #4f46e5;
-  border: 1px solid #e5e7eb;
-}
-
-.redirect-loading__url-icon {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
-}
-
-/* Progress Bar (optional visual feedback) */
-.redirect-loading__progress {
-  width: 100%;
-  height: 4px;
-  background: #e5e7eb;
-  border-radius: 2px;
-  overflow: hidden;
-  margin-top: 1.5rem;
-}
-
-.redirect-loading__progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #4f46e5, #8b5cf6);
-  border-radius: 2px;
-  animation: progressAnimation 2s ease-in-out infinite;
-  width: 30%;
-}
-
-/* Animations */
+/* Spinner animation */
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -128,26 +43,17 @@
   }
 }
 
+/* Pulse animation for text */
 @keyframes pulse {
   0%, 100% {
-    opacity: 0.7;
-    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.9;
   }
   50% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.6;
   }
 }
 
-@keyframes progressAnimation {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(333%);
-  }
-}
-
+/* Fade in animation for container */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -159,76 +65,61 @@
   }
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .redirect-loading {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  }
-  
-  .redirect-loading__content {
-    background: rgba(31, 41, 55, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border-width: 3px;
   }
   
   .redirect-loading p {
-    color: #f9fafb;
-  }
-  
-  .redirect-loading__subtext {
-    color: #d1d5db;
-  }
-  
-  .redirect-loading__url {
-    background: rgba(55, 65, 81, 0.5);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #a5b4fc;
-  }
-  
-  .spinner::before {
-    background: conic-gradient(transparent, #a5b4fc, transparent);
-  }
-  
-  .spinner::after {
-    background: linear-gradient(135deg, #6366f1 0%, #a5b4fc 100%);
+    font-size: 1.25rem;
   }
 }
 
-/* Responsive Design */
-@media (max-width: 640px) {
-  .redirect-loading__content {
-    padding: 2rem;
-    margin: 1rem;
-    border-radius: 16px;
-  }
-  
+@media (max-width: 480px) {
   .spinner {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .spinner::after {
     width: 40px;
     height: 40px;
   }
   
   .redirect-loading p {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
 }
 
-/* Reduced Motion Support */
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .redirect-loading {
+    background: linear-gradient(135deg, #4c51bf 0%, #6b46c1 100%);
+  }
+}
+
+/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .spinner::before,
-  .spinner::after,
-  .redirect-loading__progress-bar {
+  .spinner {
+    animation: spin 2s linear infinite;
+  }
+  
+  .redirect-loading p {
+    animation: none;
+    opacity: 0.9;
+  }
+  
+  .redirect-loading {
     animation: none;
   }
-  
-  .spinner::before {
-    animation: spin 4s linear infinite;
+}
+
+/* Loading state for high-contrast mode */
+@media (prefers-contrast: high) {
+  .spinner {
+    border: 4px solid #000;
+    border-top-color: #fff;
   }
   
-  .redirect-loading__content {
-    animation: fadeIn 1s ease-out;
+  .redirect-loading {
+    background: #000;
   }
 }

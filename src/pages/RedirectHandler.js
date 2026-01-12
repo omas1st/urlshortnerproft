@@ -21,7 +21,7 @@ const RedirectHandler = () => {
   return (
     <div className="redirect-loading">
       <div className="spinner"></div>
-      <p>Redirecting...</p>
+      <p>Loading...</p>
     </div>
   );
 };

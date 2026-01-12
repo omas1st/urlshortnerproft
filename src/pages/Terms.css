@@ -1,0 +1,107 @@
+/* Terms Page Specific Styles */
+.terms-page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+}
+
+.terms-main-content {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  flex: 1;
+}
+
+.terms-title-header {
+  color: #1e293b;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  border-bottom: 3px solid #3b82f6;
+  padding-bottom: 0.5rem;
+}
+
+.terms-update-date {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 2.5rem;
+  font-style: italic;
+}
+
+.terms-section-heading {
+  color: #334155;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem;
+  padding-left: 0.75rem;
+  border-left: 4px solid #10b981;
+}
+
+.terms-paragraph-text {
+  color: #475569;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+  font-size: 1.05rem;
+}
+
+.terms-prohibited-list {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 1.5rem 0;
+}
+
+.terms-prohibited-item {
+  color: #475569;
+  padding: 0.5rem 0 0.5rem 2rem;
+  position: relative;
+  line-height: 1.6;
+}
+
+.terms-prohibited-item::before {
+  content: "⚠️";
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+}
+
+.terms-contact-email {
+  background-color: #f1f5f9;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .terms-main-content {
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+  }
+  
+  .terms-title-header {
+    font-size: 2rem;
+  }
+  
+  .terms-section-heading {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .terms-title-header {
+    font-size: 1.75rem;
+  }
+  
+  .terms-section-heading {
+    font-size: 1.25rem;
+    padding-left: 0.5rem;
+    border-left-width: 3px;
+  }
+  
+  .terms-prohibited-item {
+    padding-left: 1.75rem;
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   FaQuestionCircle, 
   FaQrcode, 
@@ -99,6 +100,17 @@ const Footer = () => {
               <div className="product-item">
                 <FaQrcode /> QR Code Generator
               </div>
+            </div>
+          </div>
+
+          {/* Company / Legal Links */}
+          <div className="company-section">
+            <h3>Company</h3>
+            <div className="company-links">
+              <Link to="/about" className="company-link">About</Link>
+              <Link to="/faq" className="company-link">FAQ</Link>
+              <Link to="/privacy" className="company-link">Privacy</Link>
+              <Link to="/terms" className="company-link">Terms</Link>
             </div>
           </div>
           
@@ -292,6 +304,34 @@ const Footer = () => {
         
         .product-item:hover {
           background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Company links */
+        .company-section h3 {
+          margin-bottom: 20px;
+          font-size: 1.5rem;
+        }
+
+        .company-links {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .company-link {
+          color: rgba(255,255,255,0.95);
+          text-decoration: none;
+          padding: 8px 12px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.04);
+          transition: background 0.2s, transform 0.15s;
+          display: inline-block;
+          max-width: 160px;
+        }
+
+        .company-link:hover {
+          background: rgba(255,255,255,0.12);
+          transform: translateY(-3px);
         }
         
         .help-section {
@@ -587,6 +627,17 @@ const Footer = () => {
             width: 45px;
             height: 45px;
             font-size: 1.3rem;
+          }
+
+          .company-links {
+            flex-direction: row;
+            gap: 12px;
+            flex-wrap: wrap;
+          }
+
+          .company-link {
+            max-width: none;
+            padding: 8px 10px;
           }
         }
         

@@ -26,6 +26,9 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
 
+  // NEW: terms agreement state
+  const [agree, setAgree] = useState(false);
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -96,6 +99,11 @@ const Register = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    // NEW: Terms agreement validation
+    if (!agree) {
+      newErrors.agree = 'You must agree to the Terms and Privacy policy';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -109,6 +117,12 @@ const Register = () => {
 
     // Clear field-specific error (safe)
     setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  // NEW: handle checkbox change
+  const handleAgreeChange = (e) => {
+    setAgree(e.target.checked);
+    setErrors(prev => ({ ...prev, agree: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -275,7 +289,26 @@ const Register = () => {
                 )}
               </div>
 
-              
+              {/* NEW: Terms & Privacy agreement area */}
+              <div className="form-group terms-group" style={{ marginTop: 8 }}>
+                <label className="terms-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={agree}
+                    onChange={handleAgreeChange}
+                    disabled={loading}
+                    aria-describedby="terms-desc"
+                  />
+                  <span id="terms-desc" style={{ lineHeight: 1.2 }}>
+                    I agree to the{' '}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="inline-link">Terms of Service</a>{' '}
+                    and{' '}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="inline-link">Privacy Policy</a>.
+                    (opens in a new tab)
+                  </span>
+                </label>
+                {errors.agree && <span className="error-message">{errors.agree}</span>}
+              </div>
 
               <button
                 type="submit"
