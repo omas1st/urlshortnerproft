@@ -19,6 +19,7 @@ import About from './pages/About';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import FAQ from './pages/FAQ';
+import TagPage from './pages/TagPage'; // <- new import
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -134,6 +135,8 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            {/* inside <Routes> (place before the shortId route) */}
+            <Route path="/tags/:slug" element={<TagPage />} />
             {/* Add this as the LAST route in your Routes component */}
             <Route path="/:shortId" element={<RedirectHandler />} />
           </Routes>

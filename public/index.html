@@ -8,6 +8,9 @@
     <title>OmsUrl — Free Smart URL Shortener with Analytics</title>
     <meta name="description" content="OmsUrl — free smart URL shortener. Shorten links, track clicks and analytics, manage campaigns, and use pro features for free." />
     <meta name="robots" content="index, follow" />
+    
+    <!-- Meta keywords -->
+    <meta name="keywords" content="URL redirection service, 301 URL shortener, Link cloaking, UTM parameters shortener, Self-hosted URL shortener, Open source URL shortener, API URL shortening, Bitly alternative, TinyURL alternative, Free Bitly alternative, Rebrandly vs Bitly, Best free URL shortener, URL shortener no ads, Privacy-focused URL shortener, Instagram link in bio tool, TikTok link shortener, YouTube description link shortener, Email marketing link shortener, SMS link shortener, QR code with link tracking, Podcast link shortener, Affiliate link shortener, Digital business card links, Event link shortener, Best URL shortener, Top link shorteners 2026, URL shortener with custom domain, Free branded link shortener, URL shortener for business, Shorten URLs for Instagram, Shorten links for TikTok, Short URLs for Twitter/X, URL shortener for YouTube, Shopify link shortener, Bitly, TinyURL, Short.io, Rebrandly, BL.INK, Ow.ly, Cutt.ly, is.gd, T2M, Polr, Yourls, ClickMeter, Lites.press, Sniply, Kutt.it, Shorby, PicSee, Buffer for links, Password-protected short links, Expiring short links, UTM builder, Bulk URL shortening, API for URL shortening, Link retargeting, Geo-targeted links, A/B testing for links, Mobile deep linking, Social media link shortener, Free custom URL shortener, Branded URL shortener, Shorten long URL, URL management tool, Click tracking, URL analytics, Link management, Create short link, QR code generator, Bio link tool, Shorten URL, URL shortener free, Short link, Link shortener, Free link shortener, Custom URL shortener, Shorten links, URL shrinker, Link compressor" />
 
     <!-- Canonical -->
     <link rel="canonical" href="https://omsurl.com/" />
@@ -33,6 +36,7 @@
     <meta property="og:title" content="OmsUrl — Free Smart URL Shortener with Analytics" />
     <meta property="og:description" content="Shorten links, track clicks and campaigns, and access advanced analytics — free from OmsUrl." />
     <meta property="og:url" content="https://omsurl.com/" />
+    <meta property="og:site_name" content="Omsurl" />
     <meta property="og:image" content="https://omsurl.com/og-image.png" />
 
     <!-- Twitter Card -->
@@ -44,6 +48,9 @@
     <!-- Manifest / favicon -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="%PUBLIC_URL%/index.css" />
 
     <!-- Structured data -->
     <script type="application/ld+json">
@@ -55,13 +62,14 @@
           "@id": "https://omsurl.com/#website",
           "url": "https://omsurl.com/",
           "name": "OmsUrl",
+          "description": "OmsUrl — free and powerful URL shortener. Create short links, QR codes, track clicks and manage links easily.",
           "publisher": {
             "@type": "Organization",
             "name": "Omslabs"
           },
           "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://omsurl.com/?q={search_term_string}",
+            "target": "https://omsurl.com/search?q={search_term_string}",
             "query-input": "required name=search_term_string"
           }
         },
@@ -81,6 +89,95 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+
+    <!-- Expose tags to the SPA for tag pages -->
+    <script>
+      window.__SITE_TAGS__ = [
+        "URL redirection service",
+        "301 URL shortener",
+        "Link cloaking",
+        "UTM parameters shortener",
+        "Self-hosted URL shortener",
+        "Open source URL shortener",
+        "API URL shortening",
+        "Bitly alternative",
+        "TinyURL alternative",
+        "Free Bitly alternative",
+        "Rebrandly vs Bitly",
+        "Best free URL shortener",
+        "URL shortener no ads",
+        "Privacy-focused URL shortener",
+        "Instagram link in bio tool",
+        "TikTok link shortener",
+        "YouTube description link shortener",
+        "Email marketing link shortener",
+        "SMS link shortener",
+        "QR code with link tracking",
+        "Podcast link shortener",
+        "Affiliate link shortener",
+        "Digital business card links",
+        "Event link shortener",
+        "Best URL shortener",
+        "Top link shorteners 2026",
+        "URL shortener with custom domain",
+        "Free branded link shortener",
+        "URL shortener for business",
+        "Shorten URLs for Instagram",
+        "Shorten links for TikTok",
+        "Short URLs for Twitter/X",
+        "URL shortener for YouTube",
+        "Shopify link shortener",
+        "Bitly",
+        "TinyURL",
+        "Short.io",
+        "Rebrandly",
+        "BL.INK",
+        "Ow.ly (Hootsuite)",
+        "Cutt.ly",
+        "is.gd",
+        "T2M (Tiny.cc)",
+        "Polr",
+        "Yourls (self-hosted)",
+        "ClickMeter",
+        "Lites.press",
+        "Sniply (now part of Rewind)",
+        "Kutt.it",
+        "Shorby",
+        "PicSee (for visual links)",
+        "Buffer for links",
+        "Password-protected short links",
+        "Expiring short links",
+        "UTM builder for URLs",
+        "Bulk URL shortening",
+        "API for URL shortening",
+        "Link retargeting",
+        "Geo-targeted links",
+        "A/B testing for links",
+        "Mobile deep linking",
+        "Social media link shortener",
+        "Free custom URL shortener",
+        "Branded URL shortener",
+        "Shorten long URL",
+        "URL management tool",
+        "Click tracking",
+        "URL analytics",
+        "Link management",
+        "Short URL with analytics",
+        "Create short link",
+        "QR code generator from URL",
+        "Bio link tool",
+        "Shorten URL",
+        "URL shortener free",
+        "Short link",
+        "Link shortener",
+        "Free link shortener",
+        "URL shortening service",
+        "Custom URL shortener",
+        "Shorten links",
+        "URL shrinker",
+        "Link compressor"
+      ];
+    </script>
 
     <!-- If you use CRA, the build scripts will be injected automatically -->
   </body>
