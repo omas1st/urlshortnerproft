@@ -1,12 +1,30 @@
-// File: src/pages/Login.js
+// File: src/pages/Login.js - UPDATED WITH PROPER API BASE URL
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api'; // Add this import
 import { FaEnvelope, FaLock, FaSignInAlt, FaUser, FaTimes } from 'react-icons/fa';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import './Login.css';
+
+// UPDATED: Dynamic API base URL (used only by the fetch-based forgot-password flows)
+const getApiBaseUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:5000/api';
+  }
+
+  if (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim() !== '') {
+    return process.env.REACT_APP_API_URL.replace(/\/+$/, '');
+  }
+
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    return `${window.location.origin.replace(/\/+$/, '')}/api`;
+  }
+
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const Login = () => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
@@ -106,29 +124,43 @@ const Login = () => {
     }
   };
 
+  // UPDATED: Proper API call with fetch and error handling
   const handleForgotPassword = async () => {
     if (forgotStep === 1) {
       if (!validateForgotStep1()) return;
 
       setForgotLoading(true);
       try {
-        // Use api instance instead of fetch
-        const response = await api.post('/auth/verify-identity', { 
-          email: forgotEmail.toLowerCase(), 
-          username: forgotUsername.toLowerCase() 
+        const response = await fetch(`${API_BASE_URL}/auth/verify-identity`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: forgotEmail.toLowerCase(),
+            username: forgotUsername.toLowerCase()
+          }),
+          credentials: 'include' // Important for cookies
         });
 
-        if (response.data && response.data.success) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data && data.success) {
           setForgotStep(2);
           setForgotErrors({});
           setForgotSuccess('');
         } else {
-          setForgotErrors({ 
-            form: response.data?.message || 'Email and username do not match. Please contact admin for password recovery.' 
+          setForgotErrors({
+            form: data?.message || 'Email and username do not match. Please contact admin for password recovery.'
           });
         }
       } catch (error) {
-        const message = error?.response?.data?.message || error.message || 'An error occurred. Please try again.';
+        console.error('Forgot password error:', error);
+        const message = error.message || 'An error occurred. Please try again.';
         setForgotErrors({ form: message });
       } finally {
         setForgotLoading(false);
@@ -138,27 +170,40 @@ const Login = () => {
 
       setForgotLoading(true);
       try {
-        // Use api instance instead of fetch
-        const response = await api.post('/auth/reset-password-via-identity', {
-          email: forgotEmail.toLowerCase(),
-          username: forgotUsername.toLowerCase(),
-          newPassword,
-          confirmPassword: confirmNewPassword
+        const response = await fetch(`${API_BASE_URL}/auth/reset-password-via-identity`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: forgotEmail.toLowerCase(),
+            username: forgotUsername.toLowerCase(),
+            newPassword,
+            confirmPassword: confirmNewPassword
+          }),
+          credentials: 'include'
         });
 
-        if (response.data && response.data.success) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data && data.success) {
           setForgotSuccess('Password reset successfully! You can now log in with your new password.');
           setTimeout(() => {
             setShowForgotPassword(false);
             resetForgotPasswordForm();
           }, 3000);
         } else {
-          setForgotErrors({ 
-            form: response.data?.message || 'Password reset failed. Please try again.' 
+          setForgotErrors({
+            form: data?.message || 'Password reset failed. Please try again.'
           });
         }
       } catch (error) {
-        const message = error?.response?.data?.message || error.message || 'An error occurred. Please try again.';
+        console.error('Reset password error:', error);
+        const message = error.message || 'An error occurred. Please try again.';
         setForgotErrors({ form: message });
       } finally {
         setForgotLoading(false);
@@ -246,8 +291,8 @@ const Login = () => {
                 <label className="remember-me">
                   <input type="checkbox" /> Remember me
                 </label>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="forgot-password-btn"
                   onClick={openForgotPassword}
                 >
@@ -276,7 +321,7 @@ const Login = () => {
         </div>
       </main>
 
-      {/* Forgot Password Modal */}
+      {/* Forgot Password Modal (unchanged structurally) */}
       {showForgotPassword && (
         <div className="modal-overlay" onClick={() => setShowForgotPassword(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -284,8 +329,8 @@ const Login = () => {
               <h3>
                 <FaLock aria-hidden="true" /> Reset Password
               </h3>
-              <button 
-                className="modal-close" 
+              <button
+                className="modal-close"
                 onClick={() => setShowForgotPassword(false)}
               >
                 <FaTimes />
@@ -296,7 +341,7 @@ const Login = () => {
               {forgotStep === 1 ? (
                 <>
                   <p className="muted">Enter your email and username to verify your identity</p>
-                  
+
                   {forgotErrors.form && (
                     <div className="form-error">{forgotErrors.form}</div>
                   )}
@@ -346,7 +391,7 @@ const Login = () => {
               ) : (
                 <>
                   <p className="muted">Set your new password</p>
-                  
+
                   {forgotErrors.form && (
                     <div className="form-error">{forgotErrors.form}</div>
                   )}
@@ -420,7 +465,7 @@ const Login = () => {
                   {forgotLoading ? 'Resetting...' : 'Reset Password'}
                 </button>
               )}
-              
+
               {forgotStep === 2 && (
                 <button
                   type="button"
