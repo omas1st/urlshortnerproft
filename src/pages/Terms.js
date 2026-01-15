@@ -52,7 +52,7 @@ const Terms = () => {
 
         <h2 className="terms-section-heading">Contact</h2>
         <p className="terms-paragraph-text">
-          For questions about these terms, email: <code className="terms-contact-email">omslabs1st@gmail.com</code>
+          For questions about these terms, email: <code className="contact-email">omslabs1st@gmail.com</code>
         </p>
       </main>
       <Footer />
