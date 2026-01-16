@@ -1,15 +1,19 @@
-// src/services/api.js
+// File: src/services/api.js
 import axios from 'axios';
 
 // Support either REACT_APP_API_URL or REACT_APP_BACKEND_URL (append /api)
 const envApiUrl = process.env.REACT_APP_API_URL;
 const envBackendUrl = process.env.REACT_APP_BACKEND_URL;
 
+// Allow credentials only when explicitly enabled via env var.
+// (Set REACT_APP_ALLOW_CREDENTIALS=true in Vercel if server supports cookies)
+const allowCredentials = process.env.REACT_APP_ALLOW_CREDENTIALS === 'true';
+
 // Compute API base URL safely:
 // 1. Use REACT_APP_API_URL if provided (exactly as provided, trimmed).
 // 2. Else use REACT_APP_BACKEND_URL + '/api' if provided.
 // 3. Else, if running in browser, use window.location.origin + '/api' (same-origin).
-// 4. Fallback to 'http://localhost:5000/api' for local node env (rare in real browser).
+// 4. Fallback to 'http://localhost:5000/api' for local dev (rare in real browser).
 let API_BASE_URL = '';
 
 if (envApiUrl && envApiUrl.trim().length) {
@@ -25,7 +29,9 @@ if (envApiUrl && envApiUrl.trim().length) {
 }
 
 console.log('API Base URL:', API_BASE_URL);
+console.log('Allow credentials (withCredentials):', allowCredentials);
 
+// axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -33,8 +39,8 @@ const api = axios.create({
     Accept: 'application/json'
   },
   timeout: 15000, // 15 seconds
-  // IMPORTANT: allow cookies to be sent/received (server must set proper SameSite/secure)
-  withCredentials: true
+  // IMPORTANT: allow cookies only when explicitly enabled
+  withCredentials: allowCredentials
 });
 
 // Request interceptor to add token
