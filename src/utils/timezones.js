@@ -3,7 +3,7 @@
 // List of common timezones by country/region
 export const timezones = [
   { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
-  
+
   // North America
   { value: 'America/New_York', label: 'Eastern Time (US & Canada)', country: 'US' },
   { value: 'America/Chicago', label: 'Central Time (US & Canada)', country: 'US' },
@@ -12,7 +12,7 @@ export const timezones = [
   { value: 'America/Toronto', label: 'Eastern Time - Toronto', country: 'CA' },
   { value: 'America/Vancouver', label: 'Pacific Time - Vancouver', country: 'CA' },
   { value: 'America/Mexico_City', label: 'Central Time - Mexico City', country: 'MX' },
-  
+
   // Europe
   { value: 'Europe/London', label: 'London', country: 'GB' },
   { value: 'Europe/Paris', label: 'Paris', country: 'FR' },
@@ -34,7 +34,7 @@ export const timezones = [
   { value: 'Europe/Athens', label: 'Athens', country: 'GR' },
   { value: 'Europe/Istanbul', label: 'Istanbul', country: 'TR' },
   { value: 'Europe/Moscow', label: 'Moscow', country: 'RU' },
-  
+
   // Asia
   { value: 'Asia/Tokyo', label: 'Tokyo', country: 'JP' },
   { value: 'Asia/Shanghai', label: 'Shanghai', country: 'CN' },
@@ -52,15 +52,15 @@ export const timezones = [
   { value: 'Asia/Manila', label: 'Manila', country: 'PH' },
   { value: 'Asia/Taipei', label: 'Taipei', country: 'TW' },
   { value: 'Asia/Ho_Chi_Minh', label: 'Ho Chi Minh City', country: 'VN' },
-  
-  // Australia/Pacific
+
+  // Australia / Pacific
   { value: 'Australia/Sydney', label: 'Sydney', country: 'AU' },
   { value: 'Australia/Melbourne', label: 'Melbourne', country: 'AU' },
   { value: 'Australia/Brisbane', label: 'Brisbane', country: 'AU' },
   { value: 'Australia/Perth', label: 'Perth', country: 'AU' },
   { value: 'Pacific/Auckland', label: 'Auckland', country: 'NZ' },
   { value: 'Pacific/Honolulu', label: 'Honolulu', country: 'US' },
-  
+
   // South America
   { value: 'America/Sao_Paulo', label: 'São Paulo', country: 'BR' },
   { value: 'America/Buenos_Aires', label: 'Buenos Aires', country: 'AR' },
@@ -68,7 +68,7 @@ export const timezones = [
   { value: 'America/Bogota', label: 'Bogota', country: 'CO' },
   { value: 'America/Santiago', label: 'Santiago', country: 'CL' },
   { value: 'America/Caracas', label: 'Caracas', country: 'VE' },
-  
+
   // Africa
   { value: 'Africa/Cairo', label: 'Cairo', country: 'EG' },
   { value: 'Africa/Johannesburg', label: 'Johannesburg', country: 'ZA' },
@@ -76,15 +76,17 @@ export const timezones = [
   { value: 'Africa/Nairobi', label: 'Nairobi', country: 'KE' },
   { value: 'Africa/Casablanca', label: 'Casablanca', country: 'MA' },
   { value: 'Africa/Tunis', label: 'Tunis', country: 'TN' },
-  { value: 'Africa/Addis_Ababa', label: 'Addis Ababa', country: 'ET' },
+  { value: 'Africa/Addis_Ababa', label: 'Addis Ababa', country: 'ET' }
 ];
 
 // Get timezone by country code or name
 export const getTimezonesByCountry = (countryCode) => {
   if (!countryCode) return timezones;
-  return timezones.filter(tz => 
-    tz.country?.toLowerCase() === countryCode.toLowerCase() ||
-    tz.label.toLowerCase().includes(countryCode.toLowerCase())
+  const lower = countryCode.toLowerCase();
+  return timezones.filter(
+    (tz) =>
+      tz.country?.toLowerCase() === lower ||
+      tz.label.toLowerCase().includes(lower)
   );
 };
 
@@ -92,10 +94,11 @@ export const getTimezonesByCountry = (countryCode) => {
 export const searchTimezones = (query) => {
   if (!query) return timezones;
   const lowerQuery = query.toLowerCase();
-  return timezones.filter(tz => 
-    tz.label.toLowerCase().includes(lowerQuery) ||
-    tz.value.toLowerCase().includes(lowerQuery) ||
-    (tz.country && tz.country.toLowerCase().includes(lowerQuery))
+  return timezones.filter(
+    (tz) =>
+      tz.label.toLowerCase().includes(lowerQuery) ||
+      tz.value.toLowerCase().includes(lowerQuery) ||
+      tz.country?.toLowerCase().includes(lowerQuery)
   );
 };
 
@@ -110,8 +113,7 @@ export const getCurrentTimeInTimezone = (timezone = 'UTC') => {
       second: '2-digit',
       hour12: false
     }).format(now);
-  } catch (error) {
-    console.error('Error getting time for timezone:', timezone, error);
+  } catch {
     return '00:00:00';
   }
 };
@@ -119,54 +121,46 @@ export const getCurrentTimeInTimezone = (timezone = 'UTC') => {
 // Convert UTC hour to timezone hour
 export const convertUTCToTimezone = (utcHour, timezone = 'UTC') => {
   try {
-    // Create a date at the UTC hour
     const date = new Date();
     date.setUTCHours(utcHour, 0, 0, 0);
-    
-    // Get the hour in the target timezone
+
     const timezoneHour = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       hour: 'numeric',
       hour12: false
     }).format(date);
-    
+
     return parseInt(timezoneHour, 10);
-  } catch (error) {
-    console.error('Error converting UTC to timezone:', error);
-    return utcHour; // Fallback to UTC
+  } catch {
+    return utcHour;
   }
 };
 
 // Convert timezone hour to UTC hour
-export const convertTimezoneToUTC = (timezoneHour, timezone = 'UTC') => {
+export const convertTimezoneToUTC = (timezoneHour) => {
   try {
-    // Create a date at the local timezone hour
     const date = new Date();
     date.setHours(timezoneHour, 0, 0, 0);
-    
-    // Format the date in UTC
+
     const utcHour = new Intl.DateTimeFormat('en-US', {
       timeZone: 'UTC',
       hour: 'numeric',
       hour12: false
     }).format(date);
-    
+
     return parseInt(utcHour, 10);
-  } catch (error) {
-    console.error('Error converting timezone to UTC:', error);
-    return timezoneHour; // Fallback
+  } catch {
+    return timezoneHour;
   }
 };
 
-// Format hour label with timezone context
+// Format hour label
 export const formatHourLabel = (hour, timezone = 'UTC', use12Hour = false) => {
   if (use12Hour) {
     if (hour === 0) return '12AM';
     if (hour === 12) return '12PM';
-    return hour < 12 ? `${hour}AM` : `${hour-12}PM`;
+    return hour < 12 ? `${hour}AM` : `${hour - 12}PM`;
   }
-  
-  // 24-hour format with timezone indicator
   return `${hour.toString().padStart(2, '0')}:00`;
 };
 
@@ -174,53 +168,31 @@ export const formatHourLabel = (hour, timezone = 'UTC', use12Hour = false) => {
 export const getTimezoneOffset = (timezone = 'UTC') => {
   try {
     const now = new Date();
-    const utcTime = now.toUTCString();
     const tzTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
-    
-    // Calculate difference in minutes, convert to hours
-    const diffMinutes = (tzTime - now) / (1000 * 60);
-    return diffMinutes / 60;
-  } catch (error) {
-    console.error('Error getting timezone offset:', error);
+    return (tzTime - now) / (1000 * 60 * 60);
+  } catch {
     return 0;
   }
 };
 
 // Get user's local timezone
-export const getUserLocalTimezone = () => {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-  } catch (error) {
-    return 'UTC';
-  }
-};
+export const getUserLocalTimezone = () =>
+  Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
 // Get timezone display name
 export const getTimezoneDisplayName = (timezone = 'UTC') => {
-  try {
-    if (timezone === 'UTC') return 'UTC';
-    
-    // Try to get the city name from the timezone string
-    const parts = timezone.split('/');
-    if (parts.length > 1) {
-      const city = parts[parts.length - 1].replace('_', ' ');
-      const region = parts[0].split('/')[0]; // Get main region
-      
-      // Find matching timezone for better display
-      const tz = timezones.find(t => t.value === timezone);
-      if (tz) return tz.label;
-      
-      return `${city} (${region})`;
-    }
-    
-    return timezone;
-  } catch (error) {
-    return timezone;
-  }
+  if (timezone === 'UTC') return 'UTC';
+
+  const tz = timezones.find((t) => t.value === timezone);
+  if (tz) return tz.label;
+
+  const parts = timezone.split('/');
+  const city = parts.pop()?.replace('_', ' ');
+  return city || timezone;
 };
 
 // Default export
-export default {
+const timezoneUtils = {
   timezones,
   getTimezonesByCountry,
   searchTimezones,
@@ -232,3 +204,5 @@ export default {
   getUserLocalTimezone,
   getTimezoneDisplayName
 };
+
+export default timezoneUtils;

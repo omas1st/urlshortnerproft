@@ -11,8 +11,12 @@ const RedirectHandler = () => {
     // If we reach this component, it means React Router didn't have a matching route
     // So we should redirect to the backend endpoint
     if (shortId) {
+      // Use env var in production (ensure REACT_APP_BACKEND_URL is set to your backend domain)
       const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
-      window.location.href = `${backendUrl}/${shortId}`;
+      // use replace so we don't add to history
+      const target = `${backendUrl.replace(/\/$/, '')}/${encodeURIComponent(shortId)}`;
+      // Use location.replace to avoid keeping the client route in browser history
+      window.location.replace(target);
     } else {
       navigate('/');
     }
@@ -21,7 +25,7 @@ const RedirectHandler = () => {
   return (
     <div className="redirect-loading">
       <div className="spinner"></div>
-      <p>Redirecting...</p>
+      <p>Loading...</p>
     </div>
   );
 };
