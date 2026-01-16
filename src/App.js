@@ -14,13 +14,6 @@ import RedirectHandler from './pages/RedirectHandler';
 import { useAuth } from './context/AuthContext';
 import './App.css';
 
-// New public pages
-import About from './pages/About';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
-import FAQ from './pages/FAQ';
-import TagPage from './pages/TagPage'; // <- new import
-
 // Protected Route Component
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading } = useAuth();
@@ -80,11 +73,6 @@ function App() {
           />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/faq" element={<FAQ />} />
-
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route 
@@ -135,8 +123,6 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            {/* inside <Routes> (place before the shortId route) */}
-            <Route path="/tags/:slug" element={<TagPage />} />
             {/* Add this as the LAST route in your Routes component */}
             <Route path="/:shortId" element={<RedirectHandler />} />
           </Routes>

@@ -1,7 +1,7 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import api from '../services/api'; // updated api instance
+import api from '../services/api'; // <-- uses your api.js file which sets baseURL to REACT_APP_API_URL
 
 const AuthContext = createContext({});
 
@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [redirectUrl, setRedirectUrl] = useState('');
 
   useEffect(() => {
+    // api interceptor already adds token from localStorage (your api.js does that)
     fetchUserIfToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -25,28 +26,26 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // api interceptor will include Authorization header
+      // api interceptor will add Authorization header automatically
       const response = await api.get('/auth/me');
-
-      if (response?.data) {
-        // response shapes can differ — handle common shapes
-        if (response.data.success && response.data.user) {
-          setUser(response.data.user);
-        } else if (response.data.user) {
-          setUser(response.data.user);
-        } else {
-          // fallback: assume response.data is the user object
-          setUser(response.data);
-        }
+      
+      // Handle different response formats
+      if (response.data && response.data.success && response.data.user) {
+        setUser(response.data.user);
+      } else if (response.data && response.data.user) {
+        setUser(response.data.user);
+      } else if (response.data) {
+        // If data itself is the user object
+        setUser(response.data);
       } else {
-        // Unexpected: clear token
+        // unexpected shape -> clear auth
         localStorage.removeItem('token');
         delete api.defaults.headers.common['Authorization'];
         setUser(null);
       }
     } catch (error) {
-      // network or auth error: clear token
       console.error('Auth context fetch error:', error);
+      // token invalid or server error -> clear token
       localStorage.removeItem('token');
       delete api.defaults.headers.common['Authorization'];
       setUser(null);
@@ -58,43 +57,39 @@ export const AuthProvider = ({ children }) => {
   const login = async (emailOrUsername, password) => {
     try {
       const response = await api.post('/auth/login', { emailOrUsername, password });
-
-      // Handle response shape
+      
+      // Handle response format
       let token, userObj;
+      
       if (response.data && response.data.success) {
         token = response.data.token;
         userObj = response.data.user;
       } else if (response.data) {
+        // Assume response.data contains token and user directly
         token = response.data.token;
-        userObj = response.data.user || response.data;
+        userObj = response.data;
       } else {
         throw new Error('Invalid response from server');
       }
-
+      
       if (token) {
         localStorage.setItem('token', token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
-
+      
       setUser(userObj);
       toast.success(response.data?.message || 'Login successful!');
-
+      
+      // Redirect admin users to admin panel
       if (userObj?.role === 'admin') {
         setTimeout(() => {
           window.location.href = '/admin';
         }, 1000);
       }
-
+      
       return { success: true, data: response.data, user: userObj };
+      
     } catch (error) {
-      // Distinguish network error vs API error
-      if (error.isNetworkError || !error.response) {
-        const msg = `Network error — could not reach API at ${api.defaults.baseURL}`;
-        toast.error(msg);
-        console.error(msg, error);
-        return { success: false, error: msg };
-      }
-
       const message = error?.response?.data?.message || error.message || 'Login failed';
       toast.error(message);
       return { success: false, error: message };
@@ -104,34 +99,30 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await api.post('/auth/register', userData);
-
+      
+      // Handle response format
       let token, userObj;
+      
       if (response.data && response.data.success) {
         token = response.data.token;
         userObj = response.data.user;
       } else if (response.data) {
         token = response.data.token;
-        userObj = response.data.user || response.data;
+        userObj = response.data;
       } else {
         throw new Error('Invalid response from server');
       }
-
+      
       if (token) {
         localStorage.setItem('token', token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
-
+      
       setUser(userObj);
       toast.success(response.data?.message || 'Registration successful!');
       return { success: true, data: response.data, user: userObj };
+      
     } catch (error) {
-      if (error.isNetworkError || !error.response) {
-        const msg = `Network error — could not reach API at ${api.defaults.baseURL}`;
-        toast.error(msg);
-        console.error(msg, error);
-        return { success: false, error: msg };
-      }
-
       const message = error?.response?.data?.message || error.message || 'Registration failed';
       toast.error(message);
       return { success: false, error: message };

@@ -174,7 +174,7 @@ export const formatHourLabel = (hour, timezone = 'UTC', use12Hour = false) => {
 export const getTimezoneOffset = (timezone = 'UTC') => {
   try {
     const now = new Date();
-    // Note: Removed unused utcTime variable that was causing the warning
+    const utcTime = now.toUTCString();
     const tzTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
     
     // Calculate difference in minutes, convert to hours
@@ -219,8 +219,8 @@ export const getTimezoneDisplayName = (timezone = 'UTC') => {
   }
 };
 
-// Create an object with all utilities for the default export
-const timezoneUtils = {
+// Default export
+export default {
   timezones,
   getTimezonesByCountry,
   searchTimezones,
@@ -232,6 +232,3 @@ const timezoneUtils = {
   getUserLocalTimezone,
   getTimezoneDisplayName
 };
-
-// Default export - now assigned to a variable first
-export default timezoneUtils;

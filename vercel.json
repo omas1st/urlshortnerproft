@@ -1,10 +1,8 @@
 {
-  "buildCommand": "NODE_OPTIONS='--max-old-space-size=4096' npm run build",
-  "installCommand": "npm install",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
+    "rewrites": [
+      {
+        "source": "/(.*)",
+        "destination": "/index.html"
+      }
+    ]
+  }

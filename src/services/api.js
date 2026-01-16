@@ -5,22 +5,13 @@ import axios from 'axios';
 const envApiUrl = process.env.REACT_APP_API_URL;
 const envBackendUrl = process.env.REACT_APP_BACKEND_URL;
 
-// Compute API base URL safely:
-// 1. Use REACT_APP_API_URL if provided (exactly as provided, trimmed).
-// 2. Else use REACT_APP_BACKEND_URL + '/api' if provided.
-// 3. Else, if running in browser, use window.location.origin + '/api' (same-origin).
-// 4. Fallback to 'http://localhost:5000/api' for local node env (rare in real browser).
 let API_BASE_URL = '';
 
-if (envApiUrl && envApiUrl.trim().length) {
-  API_BASE_URL = envApiUrl.replace(/\/+$/, ''); // use as provided, strip trailing slash
-} else if (envBackendUrl && envBackendUrl.trim().length) {
-  API_BASE_URL = envBackendUrl.replace(/\/+$/, '') + '/api';
-} else if (typeof window !== 'undefined' && window.location && window.location.origin) {
-  // Use same origin + /api when deployed on same host
-  API_BASE_URL = `${window.location.origin.replace(/\/+$/, '')}/api`;
+if (envApiUrl && envApiUrl.length) {
+  API_BASE_URL = envApiUrl.replace(/\/$/, ''); // use as provided
+} else if (envBackendUrl && envBackendUrl.length) {
+  API_BASE_URL = envBackendUrl.replace(/\/$/, '') + '/api';
 } else {
-  // Final fallback for non-browser environments / dev
   API_BASE_URL = 'http://localhost:5000/api';
 }
 
@@ -30,11 +21,10 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    Accept: 'application/json'
+    'Accept': 'application/json'
   },
-  timeout: 15000, // 15 seconds
-  // IMPORTANT: allow cookies to be sent/received (server must set proper SameSite/secure)
-  withCredentials: true
+  timeout: 15000, // Increased to 15 seconds for better handling
+  withCredentials: false, // Set to false to avoid cookie issues
 });
 
 // Request interceptor to add token
@@ -50,10 +40,7 @@ api.interceptors.request.use(
       console.warn('Failed to get token from localStorage:', err);
     }
 
-    // Helpful debug log in dev only
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Making request to:', config.baseURL ? `${config.baseURL}${config.url}` : config.url, 'Method:', config.method);
-    }
+    console.log('Making request to:', config.url, 'Method:', config.method);
     return config;
   },
   (error) => {
@@ -65,18 +52,16 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Response from:', response.config.url, 'Status:', response.status);
-    }
+    console.log('Response from:', response.config.url, 'Status:', response.status);
     return response;
   },
   (error) => {
+    // Removed unused variable assignment: const originalRequest = error.config;
+    
     // Log detailed error information
-    const cfg = error.config || {};
     console.error('API Error Details:', {
-      url: cfg.url,
-      method: cfg.method,
-      baseURL: cfg.baseURL,
+      url: error.config?.url,
+      method: error.config?.method,
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
@@ -84,28 +69,27 @@ api.interceptors.response.use(
       code: error.code
     });
 
-    // Mark network error when no response (likely CORS or network)
+    // Handle network errors
     if (!error.response) {
-      error.isNetworkError = true;
       console.error('Network error - backend may be down or URL incorrect');
       console.error('Please check if the server is running at:', API_BASE_URL);
     }
 
     // Handle specific status codes
     if (error.response?.status === 401) {
-      console.warn('Unauthorized access - clearing token and redirecting to login');
+      console.warn('Unauthorized access - redirecting to login');
       try {
         localStorage.removeItem('token');
         delete api.defaults.headers.common['Authorization'];
       } catch (e) {
         console.warn('Failed to remove token:', e);
       }
-      // Only navigate if not already on login page
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
     } else if (error.response?.status === 404) {
-      console.error('Endpoint not found:', cfg.url);
+      console.error('Endpoint not found:', error.config.url);
     } else if (error.response?.status === 500) {
       console.error('Server error:', error.response.data);
     }

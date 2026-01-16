@@ -1,47 +1,17 @@
-// File: src/pages/Login.js - UPDATED WITH PROPER API BASE URL
+// File: src/pages/Login.js
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaEnvelope, FaLock, FaSignInAlt, FaUser, FaTimes } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import './Login.css';
-
-// UPDATED: Dynamic API base URL (used only by the fetch-based forgot-password flows)
-const getApiBaseUrl = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:5000/api';
-  }
-
-  if (process.env.REACT_APP_API_URL && process.env.REACT_APP_API_URL.trim() !== '') {
-    return process.env.REACT_APP_API_URL.replace(/\/+$/, '');
-  }
-
-  if (typeof window !== 'undefined' && window.location && window.location.origin) {
-    return `${window.location.origin.replace(/\/+$/, '')}/api`;
-  }
-
-  return '/api';
-};
-
-const API_BASE_URL = getApiBaseUrl();
 
 const Login = () => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
-  // Forgot password modal states
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotUsername, setForgotUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [forgotStep, setForgotStep] = useState(1); // 1: verify, 2: reset password
-  const [forgotLoading, setForgotLoading] = useState(false);
-  const [forgotErrors, setForgotErrors] = useState({});
-  const [forgotSuccess, setForgotSuccess] = useState('');
 
   const { login, redirectUrl } = useAuth();
   const navigate = useNavigate();
@@ -64,44 +34,6 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateForgotStep1 = () => {
-    const newErrors = {};
-
-    if (!forgotEmail.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(forgotEmail)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    if (!forgotUsername.trim()) {
-      newErrors.username = 'Username is required';
-    }
-
-    setForgotErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateForgotStep2 = () => {
-    const newErrors = {};
-
-    if (!newPassword) {
-      newErrors.newPassword = 'New password is required';
-    } else if (newPassword.length < 8) {
-      newErrors.newPassword = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
-      newErrors.newPassword = 'Password must include uppercase, lowercase, and numbers';
-    }
-
-    if (!confirmNewPassword) {
-      newErrors.confirmNewPassword = 'Please confirm your new password';
-    } else if (newPassword !== confirmNewPassword) {
-      newErrors.confirmNewPassword = 'Passwords do not match';
-    }
-
-    setForgotErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -115,115 +47,13 @@ const Login = () => {
       if (result.success) {
         navigate(from, { replace: true });
       } else {
-        setErrors((prev) => ({ ...prev, form: result.error || 'Invalid credentials' }));
+        setErrors((prev) => ({ ...prev, form: result.message || 'Invalid credentials' }));
       }
     } catch (err) {
       setErrors((prev) => ({ ...prev, form: 'An unexpected error occurred. Please try again.' }));
     } finally {
       setLoading(false);
     }
-  };
-
-  // UPDATED: Proper API call with fetch and error handling
-  const handleForgotPassword = async () => {
-    if (forgotStep === 1) {
-      if (!validateForgotStep1()) return;
-
-      setForgotLoading(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/verify-identity`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: forgotEmail.toLowerCase(),
-            username: forgotUsername.toLowerCase()
-          }),
-          credentials: 'include' // Important for cookies
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data && data.success) {
-          setForgotStep(2);
-          setForgotErrors({});
-          setForgotSuccess('');
-        } else {
-          setForgotErrors({
-            form: data?.message || 'Email and username do not match. Please contact admin for password recovery.'
-          });
-        }
-      } catch (error) {
-        console.error('Forgot password error:', error);
-        const message = error.message || 'An error occurred. Please try again.';
-        setForgotErrors({ form: message });
-      } finally {
-        setForgotLoading(false);
-      }
-    } else {
-      if (!validateForgotStep2()) return;
-
-      setForgotLoading(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/reset-password-via-identity`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: forgotEmail.toLowerCase(),
-            username: forgotUsername.toLowerCase(),
-            newPassword,
-            confirmPassword: confirmNewPassword
-          }),
-          credentials: 'include'
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data && data.success) {
-          setForgotSuccess('Password reset successfully! You can now log in with your new password.');
-          setTimeout(() => {
-            setShowForgotPassword(false);
-            resetForgotPasswordForm();
-          }, 3000);
-        } else {
-          setForgotErrors({
-            form: data?.message || 'Password reset failed. Please try again.'
-          });
-        }
-      } catch (error) {
-        console.error('Reset password error:', error);
-        const message = error.message || 'An error occurred. Please try again.';
-        setForgotErrors({ form: message });
-      } finally {
-        setForgotLoading(false);
-      }
-    }
-  };
-
-  const resetForgotPasswordForm = () => {
-    setForgotEmail('');
-    setForgotUsername('');
-    setNewPassword('');
-    setConfirmNewPassword('');
-    setForgotStep(1);
-    setForgotErrors({});
-    setForgotSuccess('');
-  };
-
-  const openForgotPassword = () => {
-    setShowForgotPassword(true);
-    resetForgotPasswordForm();
   };
 
   return (
@@ -291,13 +121,9 @@ const Login = () => {
                 <label className="remember-me">
                   <input type="checkbox" /> Remember me
                 </label>
-                <button
-                  type="button"
-                  className="forgot-password-btn"
-                  onClick={openForgotPassword}
-                >
+                <Link to="/forgot-password" className="forgot-password">
                   Forgot password?
-                </button>
+                </Link>
               </div>
 
               <button
@@ -317,169 +143,11 @@ const Login = () => {
                 </p>
               </div>
             </form>
+
+            {/* Social login and admin note removed as requested */}
           </div>
         </div>
       </main>
-
-      {/* Forgot Password Modal (unchanged structurally) */}
-      {showForgotPassword && (
-        <div className="modal-overlay" onClick={() => setShowForgotPassword(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>
-                <FaLock aria-hidden="true" /> Reset Password
-              </h3>
-              <button
-                className="modal-close"
-                onClick={() => setShowForgotPassword(false)}
-              >
-                <FaTimes />
-              </button>
-            </div>
-
-            <div className="modal-body">
-              {forgotStep === 1 ? (
-                <>
-                  <p className="muted">Enter your email and username to verify your identity</p>
-
-                  {forgotErrors.form && (
-                    <div className="form-error">{forgotErrors.form}</div>
-                  )}
-
-                  <div className="form-group">
-                    <label htmlFor="forgotEmail">
-                      <FaEnvelope aria-hidden="true" /> Email Address
-                    </label>
-                    <input
-                      type="email"
-                      id="forgotEmail"
-                      value={forgotEmail}
-                      onChange={(e) => {
-                        setForgotEmail(e.target.value);
-                        setForgotErrors({ ...forgotErrors, email: '' });
-                      }}
-                      placeholder="Enter your registered email"
-                      className={forgotErrors.email ? 'error' : ''}
-                      disabled={forgotLoading}
-                    />
-                    {forgotErrors.email && (
-                      <span className="error-message">{forgotErrors.email}</span>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="forgotUsername">
-                      <FaUser aria-hidden="true" /> Username
-                    </label>
-                    <input
-                      type="text"
-                      id="forgotUsername"
-                      value={forgotUsername}
-                      onChange={(e) => {
-                        setForgotUsername(e.target.value.toLowerCase());
-                        setForgotErrors({ ...forgotErrors, username: '' });
-                      }}
-                      placeholder="Enter your username"
-                      className={forgotErrors.username ? 'error' : ''}
-                      disabled={forgotLoading}
-                    />
-                    {forgotErrors.username && (
-                      <span className="error-message">{forgotErrors.username}</span>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="muted">Set your new password</p>
-
-                  {forgotErrors.form && (
-                    <div className="form-error">{forgotErrors.form}</div>
-                  )}
-
-                  {forgotSuccess && (
-                    <div className="form-success">{forgotSuccess}</div>
-                  )}
-
-                  <div className="form-group">
-                    <label htmlFor="newPassword">
-                      <FaLock aria-hidden="true" /> New Password
-                    </label>
-                    <input
-                      type="password"
-                      id="newPassword"
-                      value={newPassword}
-                      onChange={(e) => {
-                        setNewPassword(e.target.value);
-                        setForgotErrors({ ...forgotErrors, newPassword: '' });
-                      }}
-                      placeholder="Enter new password"
-                      className={forgotErrors.newPassword ? 'error' : ''}
-                      disabled={forgotLoading}
-                    />
-                    {forgotErrors.newPassword && (
-                      <span className="error-message">{forgotErrors.newPassword}</span>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="confirmNewPassword">
-                      <FaLock aria-hidden="true" /> Confirm New Password
-                    </label>
-                    <input
-                      type="password"
-                      id="confirmNewPassword"
-                      value={confirmNewPassword}
-                      onChange={(e) => {
-                        setConfirmNewPassword(e.target.value);
-                        setForgotErrors({ ...forgotErrors, confirmNewPassword: '' });
-                      }}
-                      placeholder="Confirm new password"
-                      className={forgotErrors.confirmNewPassword ? 'error' : ''}
-                      disabled={forgotLoading}
-                    />
-                    {forgotErrors.confirmNewPassword && (
-                      <span className="error-message">{forgotErrors.confirmNewPassword}</span>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="modal-footer">
-              {forgotStep === 1 ? (
-                <button
-                  type="button"
-                  className="submit-btn"
-                  onClick={handleForgotPassword}
-                  disabled={forgotLoading}
-                >
-                  {forgotLoading ? 'Verifying...' : 'Verify Identity'}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="submit-btn"
-                  onClick={handleForgotPassword}
-                  disabled={forgotLoading}
-                >
-                  {forgotLoading ? 'Resetting...' : 'Reset Password'}
-                </button>
-              )}
-
-              {forgotStep === 2 && (
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={() => setForgotStep(1)}
-                  disabled={forgotLoading}
-                >
-                  Back
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>
